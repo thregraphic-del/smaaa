@@ -94,20 +94,29 @@ function doGet(e) {
   try {
     const p       = (e && e.parameter) ? e.parameter : {};
     const period  = p.period  || 'month';
-    const branch  = p.branch  || 'all';   // city name: جدة / الرياض / أبها / الدمام
-    const brand   = p.brand   || 'all';   // brand name: تويوتا / لكزس ...
-    const payment = p.payment || 'all';   // all / cash / finance / card
+    const branch  = p.branch  || 'all';
+    const brand   = p.brand   || 'all';
+    const payment = p.payment || 'all';
 
     const payload = buildPayload(period, branch, brand, payment);
-    return ContentService
-      .createTextOutput(JSON.stringify(payload))
-      .setMimeType(ContentService.MimeType.JSON);
+    return buildResponse(JSON.stringify(payload));
 
   } catch (err) {
-    return ContentService
-      .createTextOutput(JSON.stringify({ status: 'error', message: err.message }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return buildResponse(JSON.stringify({ status: 'error', message: err.message, stack: err.stack }));
   }
+}
+
+// إضافة CORS headers صريحة للسماح بالطلبات من أي مصدر
+function buildResponse(jsonStr) {
+  return ContentService
+    .createTextOutput(jsonStr)
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// اختبار مباشر من محرر Apps Script
+function testRun() {
+  const result = buildPayload('month', 'all', 'all', 'all');
+  Logger.log(JSON.stringify(result, null, 2));
 }
 
 // ═════════════════════════════════════════════════════════════════════════

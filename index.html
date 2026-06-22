@@ -1558,7 +1558,11 @@
         brand:   activeFilters.brand,
         payment: activeFilters.payment,
       });
-      const res = await fetch(`${API_URL}?${params}`, { signal: ctrl.signal });
+      const res = await fetch(`${API_URL}?${params}`, {
+        signal: ctrl.signal,
+        redirect: 'follow',
+        mode: 'cors',
+      });
       clearTimeout(timeout);
 
       if (!res.ok) throw new Error('HTTP ' + res.status);
