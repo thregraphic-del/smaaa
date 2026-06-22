@@ -956,11 +956,13 @@
           </svg>
         </div>
         <div class="dropdown-menu">
-          <div class="dd-item active" data-value="all"     onclick="selectFilter('fd-brand','all','جميع الماركات',this)">جميع الماركات</div>
-          <div class="dd-item"        data-value="تويوتا"  onclick="selectFilter('fd-brand','تويوتا','تويوتا',this)">تويوتا</div>
-          <div class="dd-item"        data-value="لكزس"    onclick="selectFilter('fd-brand','لكزس','لكزس',this)">لكزس</div>
-          <div class="dd-item"        data-value="هيونداي" onclick="selectFilter('fd-brand','هيونداي','هيونداي',this)">هيونداي</div>
-          <div class="dd-item"        data-value="نيسان"   onclick="selectFilter('fd-brand','نيسان','نيسان',this)">نيسان</div>
+          <div class="dd-item active" data-value="all"          onclick="selectFilter('fd-brand','all','جميع الماركات',this)">جميع الماركات</div>
+          <div class="dd-item"        data-value="تويوتا"     onclick="selectFilter('fd-brand','تويوتا','تويوتا',this)">تويوتا</div>
+          <div class="dd-item"        data-value="مرسيدس"     onclick="selectFilter('fd-brand','مرسيدس','مرسيدس',this)">مرسيدس</div>
+          <div class="dd-item"        data-value="كيا"         onclick="selectFilter('fd-brand','كيا','كيا',this)">كيا</div>
+          <div class="dd-item"        data-value="نيسان"       onclick="selectFilter('fd-brand','نيسان','نيسان',this)">نيسان</div>
+          <div class="dd-item"        data-value="شيفروليه"    onclick="selectFilter('fd-brand','شيفروليه','شيفروليه',this)">شيفروليه</div>
+          <div class="dd-item"        data-value="بي إم دبليو" onclick="selectFilter('fd-brand','بي إم دبليو','بي إم دبليو',this)">بي إم دبليو</div>
         </div>
       </div>
 
@@ -973,9 +975,8 @@
         </div>
         <div class="dropdown-menu">
           <div class="dd-item active" data-value="all"     onclick="selectFilter('fd-payment','all','طريقة الدفع',this)">جميع الطرق</div>
-          <div class="dd-item"        data-value="cash"    onclick="selectFilter('fd-payment','cash','نقد',this)">نقد</div>
-          <div class="dd-item"        data-value="finance" onclick="selectFilter('fd-payment','finance','تمويل',this)">تمويل</div>
-          <div class="dd-item"        data-value="card"    onclick="selectFilter('fd-payment','card','بطاقة',this)">بطاقة</div>
+          <div class="dd-item"        data-value="cash"    onclick="selectFilter('fd-payment','cash','كاش',this)">كاش</div>
+          <div class="dd-item"        data-value="finance" onclick="selectFilter('fd-payment','finance','تمويل بنكي',this)">تمويل بنكي</div>
         </div>
       </div>
 
@@ -1486,7 +1487,11 @@
     // ══ 6. TOP BRANDS TABLE ══════════════════════════════════
     const brands = d.brands ?? d.topBrands ?? d.brandData ?? [];
     if (Array.isArray(brands) && brands.length > 0) {
-      const ICONS = { تويوتا:'ت', لكزس:'ل', هيونداي:'ه', نيسان:'ن', كيا:'ك', هوندا:'ح', مرسيدس:'م', بي:'ب' };
+      const ICONS = {
+        'تويوتا':'ت', 'مرسيدس':'م', 'كيا':'ك', 'نيسان':'ن',
+        'شيفروليه':'ش', 'بي إم دبليو':'B', 'هونداي':'ه', 'هيونداي إلنترا':'ه',
+        'لكزس':'ل', 'هوندا':'ح',
+      };
       const maxRev2 = Math.max(...brands.map(b => num(b.revenue ?? b.إيرادات ?? 0))) || 1;
       document.getElementById('brands-table').innerHTML = brands.map(b => {
         const name   = b.name    ?? b.الماركة  ?? b.brand ?? '';
