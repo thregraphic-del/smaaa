@@ -1,343 +1,545 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - CSV Dashboard</title>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/react.production.min.js"></script>
-    <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.10.3/Recharts.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-                'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-                sans-serif;
-            background: #f5f5f5;
-            color: #333;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-        
-        .header h1 {
-            font-size: 24px;
-            font-weight: 600;
-        }
-        
-        .last-update {
-            font-size: 12px;
-            color: #666;
-        }
-        
-        .refresh-btn {
-            padding: 8px 16px;
-            background: white;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.2s;
-        }
-        
-        .refresh-btn:hover {
-            background: #f9f9f9;
-            border-color: #999;
-        }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin-bottom: 2rem;
-        }
-        
-        .stat-card {
-            background: white;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            text-align: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        .stat-label {
-            font-size: 12px;
-            color: #999;
-            margin-bottom: 8px;
-            text-transform: capitalize;
-        }
-        
-        .stat-value {
-            font-size: 20px;
-            font-weight: 600;
-            color: #185FA5;
-            margin-bottom: 8px;
-        }
-        
-        .stat-details {
-            font-size: 11px;
-            color: #999;
-            line-height: 1.5;
-        }
-        
-        .charts-grid {
-            display: grid;
-            gap: 2rem;
-        }
-        
-        .chart-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 8px;
-            border: 1px solid #e0e0e0;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        
-        .chart-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            color: #333;
-        }
-        
-        .loading {
-            padding: 2rem;
-            text-align: center;
-            color: #999;
-        }
-        
-        .error {
-            padding: 2rem;
-            background: #fee;
-            border-radius: 8px;
-            color: #c00;
-            margin-bottom: 1rem;
-        }
-        
-        .footer {
-            text-align: center;
-            color: #999;
-            font-size: 12px;
-            margin-top: 2rem;
-        }
-        
-        canvas {
-            max-height: 400px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>لوحة تحكم معرض السيارات الفاخر</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --primary: #185FA5;
+      --gold: #BA7517;
+      --green: #3B6D11;
+      --red: #C0392B;
+      --bg: #F0F4F9;
+      --card: #FFFFFF;
+      --border: #DDE3ED;
+      --text: #1A2233;
+      --muted: #6B7A99;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      direction: rtl;
+    }
+
+    /* ── Top bar ── */
+    .topbar {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .topbar h1 { font-size: 20px; font-weight: 700; letter-spacing: 0.3px; }
+    .topbar .meta { font-size: 12px; opacity: .75; }
+
+    .sync-btn {
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      padding: 9px 22px;
+      border-radius: 7px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s;
+    }
+    .sync-btn:hover { opacity: .88; }
+    .sync-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    /* ── Filters ── */
+    .filters {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters label { font-size: 13px; color: var(--muted); }
+    .filters select {
+      padding: 7px 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 13px;
+      background: #fff;
+      color: var(--text);
+      cursor: pointer;
+      outline: none;
+      transition: border-color .2s;
+    }
+    .filters select:focus { border-color: var(--primary); }
+
+    /* ── Main layout ── */
+    .main { padding: 24px 28px; display: flex; flex-direction: column; gap: 22px; }
+
+    /* ── KPI cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .kpi-card .kpi-label { font-size: 13px; color: var(--muted); }
+    .kpi-card .kpi-value { font-size: 26px; font-weight: 700; color: var(--primary); }
+    .kpi-card .kpi-change { font-size: 13px; font-weight: 600; }
+    .kpi-change.up   { color: var(--green); }
+    .kpi-change.down { color: var(--red); }
+
+    /* ── Charts row ── */
+    .charts-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 800px) { .charts-row { grid-template-columns: 1fr; } }
+
+    /* ── Lower row ── */
+    .lower-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+    @media (max-width: 800px) { .lower-row { grid-template-columns: 1fr; } }
+
+    /* ── Card shell ── */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.04);
+    }
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Branch table ── */
+    .branch-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .branch-table th {
+      text-align: right;
+      padding: 8px 10px;
+      color: var(--muted);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+    }
+    .branch-table td {
+      padding: 9px 10px;
+      border-bottom: 1px solid #F3F5F9;
+      vertical-align: middle;
+    }
+    .branch-table tr:last-child td { border-bottom: none; }
+    .badge-up   { background: #EBF5E8; color: var(--green); padding: 3px 8px; border-radius: 20px; font-size: 12px; }
+    .badge-down { background: #FDE8E8; color: var(--red);   padding: 3px 8px; border-radius: 20px; font-size: 12px; }
+
+    /* ── Daily summary tiles ── */
+    .daily-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .daily-tile {
+      background: var(--bg);
+      border-radius: 10px;
+      padding: 14px;
+      text-align: center;
+    }
+    .daily-tile .d-val { font-size: 28px; font-weight: 700; color: var(--primary); }
+    .daily-tile .d-lbl { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Toast ── */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1A2233;
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 8px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+      z-index: 999;
+    }
+    #toast.show { opacity: 1; }
+
+    /* ── Skeleton / loading overlay ── */
+    .skeleton { animation: pulse 1.4s ease-in-out infinite; }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .45; }
+    }
+  </style>
 </head>
 <body>
-    <div id="root"></div>
-    
-    <script>
-        const { useState, useEffect } = React;
-        const { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } = Recharts;
 
-        function Dashboard() {
-            const [data, setData] = useState([]);
-            const [summary, setSummary] = useState(null);
-            const [loading, setLoading] = useState(true);
-            const [lastUpdate, setLastUpdate] = useState(new Date());
-            const [error, setError] = useState(null);
+<!-- ── Top bar ── -->
+<div class="topbar">
+  <div>
+    <h1>🚗 لوحة تحكم معرض السيارات الفاخر</h1>
+    <div class="meta" id="lastSync">آخر مزامنة: —</div>
+  </div>
+  <button class="sync-btn" id="syncBtn" onclick="syncSheets()">🔄 مزامنة البيانات</button>
+</div>
 
-            const COLORS = ['#185FA5', '#BA7517', '#3B6D11', '#D4537E', '#003087'];
+<!-- ── Filters ── -->
+<div class="filters">
+  <label>الفترة:
+    <select id="filterPeriod" onchange="syncSheets()">
+      <option value="this_month">هذا الشهر</option>
+      <option value="last_month">الشهر الماضي</option>
+      <option value="this_quarter">هذا الربع</option>
+      <option value="this_year">هذه السنة</option>
+    </select>
+  </label>
+  <label>الفرع:
+    <select id="filterBranch" onchange="syncSheets()">
+      <option value="all">كل الفروع</option>
+      <option value="jeddah">جدة</option>
+      <option value="riyadh">الرياض</option>
+      <option value="abha">أبها</option>
+      <option value="dammam">الدمام</option>
+    </select>
+  </label>
+  <label>العلامة التجارية:
+    <select id="filterBrand" onchange="syncSheets()">
+      <option value="all">كل العلامات</option>
+      <option value="toyota">تويوتا</option>
+      <option value="lexus">لكزس</option>
+      <option value="hyundai">هيونداي</option>
+      <option value="nissan">نيسان</option>
+      <option value="bmw">BMW</option>
+    </select>
+  </label>
+  <label>طريقة الدفع:
+    <select id="filterPayment" onchange="syncSheets()">
+      <option value="all">الكل</option>
+      <option value="cash">نقداً</option>
+      <option value="finance">تمويل</option>
+    </select>
+  </label>
+</div>
 
-            const fetchData = async () => {
-                try {
-                    setLoading(true);
-                    const response = await fetch('https://docs.google.com/spreadsheets/d/e/2PACX-1vTWVhAyPZB-bmxoXBYsYNNOBbSswH9A0SZ18W56j5kKnTJy1WMylIMH2_COWCpma9KAhVtyRlWYWcZ1/pub?output=csv');
-                    
-                    if (!response.ok) throw new Error('فشل تحميل البيانات');
-                    
-                    const csv = await response.text();
-                    const lines = csv.trim().split('\n');
-                    const headers = lines[0].split(',').map(h => h.trim());
-                    
-                    const parsedData = lines.slice(1).map(line => {
-                        const values = line.split(',').map(v => v.trim());
-                        const obj = {};
-                        headers.forEach((header, idx) => {
-                            const val = values[idx];
-                            obj[header] = isNaN(val) ? val : parseFloat(val);
-                        });
-                        return obj;
-                    }).filter(obj => Object.values(obj).some(v => v !== ''));
+<!-- ── Main content ── -->
+<div class="main">
 
-                    setData(parsedData);
-                    setLastUpdate(new Date());
+  <!-- KPI cards -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-label">الإيرادات</div>
+      <div class="kpi-value" id="kpiRevenue">—</div>
+      <div class="kpi-change" id="kpiRevenueChange">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">الأرباح</div>
+      <div class="kpi-value" id="kpiProfit">—</div>
+      <div class="kpi-change" id="kpiProfitChange">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">السيارات المباعة</div>
+      <div class="kpi-value" id="kpiCarsSold">—</div>
+      <div class="kpi-change" id="kpiCarsSoldChange">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">معدل دوران المخزون</div>
+      <div class="kpi-value" id="kpiTurnover">—</div>
+      <div class="kpi-change" id="kpiTurnoverChange">—</div>
+    </div>
+  </div>
 
-                    if (parsedData.length > 0) {
-                        const numericCols = headers.filter(h => 
-                            parsedData.some(row => typeof row[h] === 'number')
-                        );
+  <!-- Charts row -->
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">📈 الإيرادات والأرباح الشهرية</div>
+      <canvas id="revenueChart" height="220"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">🏷️ صحة المخزون</div>
+      <canvas id="donutChart" height="220"></canvas>
+    </div>
+  </div>
 
-                        const stats = {};
-                        numericCols.forEach(col => {
-                            const values = parsedData.map(r => r[col]).filter(v => typeof v === 'number');
-                            if (values.length > 0) {
-                                stats[col] = {
-                                    total: Math.round(values.reduce((a, b) => a + b, 0) * 100) / 100,
-                                    avg: Math.round((values.reduce((a, b) => a + b, 0) / values.length) * 100) / 100,
-                                    max: Math.max(...values),
-                                    min: Math.min(...values),
-                                    count: values.length
-                                };
-                            }
-                        });
-                        setSummary(stats);
-                    }
-                    setError(null);
-                } catch (err) {
-                    setError(err.message);
-                    console.error(err);
-                } finally {
-                    setLoading(false);
-                }
-            };
+  <!-- Lower row -->
+  <div class="lower-row">
 
-            useEffect(() => {
-                fetchData();
-                const interval = setInterval(fetchData, 30000);
-                return () => clearInterval(interval);
-            }, []);
+    <!-- Branch performance table -->
+    <div class="card">
+      <div class="card-title">🏢 أداء الفروع</div>
+      <table class="branch-table">
+        <thead>
+          <tr>
+            <th>الفرع</th>
+            <th>الإيرادات</th>
+            <th>النمو</th>
+          </tr>
+        </thead>
+        <tbody id="branchTableBody">
+          <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px">جارٍ التحميل…</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-            if (error) {
-                return (
-                    <div className="container">
-                        <div className="error">
-                            <strong>⚠️ خطأ:</strong> {error}
-                        </div>
-                        <button className="refresh-btn" onClick={fetchData}>إعادة محاولة</button>
-                    </div>
-                );
-            }
+    <!-- Top brands chart -->
+    <div class="card">
+      <div class="card-title">🚘 أفضل العلامات التجارية</div>
+      <canvas id="brandsChart" height="220"></canvas>
+    </div>
 
-            if (loading) {
-                return <div className="loading">جارٍ تحميل البيانات...</div>;
-            }
+  </div>
 
-            return (
-                <div className="container">
-                    <div className="header">
-                        <h1>📊 لوحة التحكم</h1>
-                        <div>
-                            <div className="last-update">آخر تحديث: {lastUpdate.toLocaleTimeString('ar-SA')}</div>
-                            <button className="refresh-btn" onClick={fetchData}>🔄 تحديث الآن</button>
-                        </div>
-                    </div>
+  <!-- Daily summary -->
+  <div class="card">
+    <div class="card-title">📅 ملخص اليوم</div>
+    <div class="daily-grid">
+      <div class="daily-tile">
+        <div class="d-val" id="dailySales">—</div>
+        <div class="d-lbl">مبيعات اليوم</div>
+      </div>
+      <div class="daily-tile">
+        <div class="d-val" id="dailyInventory">—</div>
+        <div class="d-lbl">إدخالات مخزون</div>
+      </div>
+      <div class="daily-tile">
+        <div class="d-val" id="dailyFinance">—</div>
+        <div class="d-lbl">طلبات تمويل</div>
+      </div>
+      <div class="daily-tile">
+        <div class="d-val" id="dailyVip">—</div>
+        <div class="d-lbl">عملاء VIP</div>
+      </div>
+    </div>
+  </div>
 
-                    {summary && (
-                        <div className="stats-grid">
-                            {Object.entries(summary).map(([key, stats]) => (
-                                <div key={key} className="stat-card">
-                                    <div className="stat-label">{key}</div>
-                                    <div className="stat-value">{stats.total}</div>
-                                    <div className="stat-details">
-                                        <div>المتوسط: {stats.avg}</div>
-                                        <div>الأعلى: {stats.max}</div>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
+</div>
 
-                    {data.length > 0 && (
-                        <div className="charts-grid">
-                            {data.length <= 12 && (
-                                <div className="chart-card">
-                                    <div className="chart-title">البيانات الكاملة</div>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <BarChart data={data}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey={Object.keys(data[0])[0]} />
-                                            <YAxis />
-                                            <Tooltip />
-                                            <Legend />
-                                            {Object.keys(data[0]).slice(1).map((key, idx) => {
-                                                if (typeof data[0][key] === 'number') {
-                                                    return <Bar key={key} dataKey={key} fill={COLORS[idx % COLORS.length]} />;
-                                                }
-                                                return null;
-                                            })}
-                                        </BarChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
+<div id="toast"></div>
 
-                            {Object.keys(data[0]).some(k => typeof data[0][k] === 'number') && (
-                                <div className="chart-card">
-                                    <div className="chart-title">الاتجاه الزمني</div>
-                                    <ResponsiveContainer width="100%" height={280}>
-                                        <LineChart data={data}>
-                                            <CartesianGrid strokeDasharray="3 3" />
-                                            <XAxis dataKey={Object.keys(data[0])[0]} />
-                                            <YAxis />
-                                            <Tooltip />
-                                            <Legend />
-                                            {Object.keys(data[0]).slice(1).map((key, idx) => {
-                                                if (typeof data[0][key] === 'number') {
-                                                    return <Line key={key} type="monotone" dataKey={key} stroke={COLORS[idx % COLORS.length]} dot={false} />;
-                                                }
-                                                return null;
-                                            })}
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
+<script>
+// ─────────────────────────────────────────────
+//  CONFIG — paste your deployed GAS Web App URL here
+// ─────────────────────────────────────────────
+const API_URL = 'YOUR_GAS_WEB_APP_URL_HERE';
 
-                            {Object.keys(data[0]).filter(k => typeof data[0][k] === 'number').length > 0 && (
-                                <div className="chart-card">
-                                    <div className="chart-title">توزيع البيانات</div>
-                                    <ResponsiveContainer width="100%" height={300}>
-                                        <PieChart>
-                                            <Pie
-                                                data={Object.keys(data[0]).filter(k => typeof data[0][k] === 'number').map((key, idx) => ({
-                                                    name: key,
-                                                    value: Math.round(summary?.[key]?.total || 0)
-                                                }))}
-                                                cx="50%"
-                                                cy="50%"
-                                                labelLine={false}
-                                                label={({ name, value }) => `${name}: ${value}`}
-                                                outerRadius={80}
-                                                dataKey="value"
-                                            >
-                                                {Object.keys(data[0]).map((_, idx) => (
-                                                    <Cell key={idx} fill={COLORS[idx % COLORS.length]} />
-                                                ))}
-                                            </Pie>
-                                            <Tooltip />
-                                        </PieChart>
-                                    </ResponsiveContainer>
-                                </div>
-                            )}
-                        </div>
-                    )}
+// ─────────────────────────────────────────────
+//  Chart instances (kept so we can destroy & rebuild)
+// ─────────────────────────────────────────────
+let revenueChartInst = null;
+let donutChartInst   = null;
+let brandsChartInst  = null;
 
-                    <div className="footer">
-                        📊 يتم تحديث البيانات تلقائياً كل 30 ثانية
-                    </div>
-                </div>
-            );
-        }
+// ─────────────────────────────────────────────
+//  Main sync function — called on load & filter change
+// ─────────────────────────────────────────────
+async function syncSheets() {
+  const btn = document.getElementById('syncBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جارٍ المزامنة…';
 
-        ReactDOM.render(<Dashboard />, document.getElementById('root'));
-    </script>
+  const params = new URLSearchParams({
+    period:  document.getElementById('filterPeriod').value,
+    branch:  document.getElementById('filterBranch').value,
+    brand:   document.getElementById('filterBrand').value,
+    payment: document.getElementById('filterPayment').value,
+  });
+
+  try {
+    const res = await fetch(`${API_URL}?${params}`);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const payload = await res.json();
+    applyData(payload);
+    document.getElementById('lastSync').textContent =
+      'آخر مزامنة: ' + new Date().toLocaleTimeString('ar-SA');
+    showToast('✅ تم تحديث البيانات بنجاح');
+  } catch (err) {
+    console.error(err);
+    showToast('⚠️ تعذّر تحميل البيانات: ' + err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔄 مزامنة البيانات';
+  }
+}
+
+// ─────────────────────────────────────────────
+//  Apply the JSON payload returned by GAS
+// ─────────────────────────────────────────────
+function applyData(d) {
+  // ── KPI ──
+  setKpi('kpiRevenue',       d.kpi.revenue,          true);
+  setKpi('kpiProfit',        d.kpi.profit,            true);
+  setKpi('kpiCarsSold',      d.kpi.carsSold,          false);
+  setKpi('kpiTurnover',      d.kpi.inventoryTurnover, false, 'x');
+
+  // ── Revenue / Profit line chart ──
+  const months  = d.monthly.map(m => m.month);
+  const revData  = d.monthly.map(m => m.revenue);
+  const profData = d.monthly.map(m => m.profit);
+
+  if (revenueChartInst) revenueChartInst.destroy();
+  revenueChartInst = new Chart(document.getElementById('revenueChart'), {
+    type: 'bar',
+    data: {
+      labels: months,
+      datasets: [
+        {
+          label: 'الإيرادات',
+          data: revData,
+          backgroundColor: 'rgba(24,95,165,0.75)',
+          borderRadius: 5,
+          yAxisID: 'y',
+        },
+        {
+          label: 'الأرباح',
+          data: profData,
+          type: 'line',
+          borderColor: '#BA7517',
+          backgroundColor: 'rgba(186,117,23,0.1)',
+          tension: 0.4,
+          fill: true,
+          pointRadius: 4,
+          yAxisID: 'y',
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { position: 'top' } },
+      scales: {
+        y: { ticks: { callback: v => formatSAR(v, true) } },
+        x: { ticks: { font: { size: 11 } } },
+      },
+    },
+  });
+
+  // ── Donut — inventory health ──
+  const inv = d.inventoryHealth;
+  if (donutChartInst) donutChartInst.destroy();
+  donutChartInst = new Chart(document.getElementById('donutChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['سليم', 'يحتاج متابعة', 'راكد'],
+      datasets: [{
+        data: [inv.healthy, inv.needsFollowup, inv.stale],
+        backgroundColor: ['#3B6D11', '#BA7517', '#C0392B'],
+        borderWidth: 2,
+        borderColor: '#fff',
+      }],
+    },
+    options: {
+      responsive: true,
+      cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom' },
+        tooltip: {
+          callbacks: { label: ctx => ` ${ctx.label}: ${ctx.raw}%` },
+        },
+      },
+    },
+  });
+
+  // ── Branch performance table ──
+  const tbody = document.getElementById('branchTableBody');
+  tbody.innerHTML = d.branches.map(b => `
+    <tr>
+      <td>${b.name}</td>
+      <td style="font-weight:600">${formatSAR(b.revenue)}</td>
+      <td>
+        <span class="${b.growth >= 0 ? 'badge-up' : 'badge-down'}">
+          ${b.growth >= 0 ? '▲' : '▼'} ${Math.abs(b.growth).toFixed(1)}%
+        </span>
+      </td>
+    </tr>
+  `).join('');
+
+  // ── Brands bar chart ──
+  if (brandsChartInst) brandsChartInst.destroy();
+  brandsChartInst = new Chart(document.getElementById('brandsChart'), {
+    type: 'bar',
+    data: {
+      labels: d.brands.map(b => b.name),
+      datasets: [{
+        label: 'المبيعات',
+        data: d.brands.map(b => b.sold),
+        backgroundColor: ['#185FA5','#BA7517','#3B6D11','#D4537E','#003087'],
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true } },
+    },
+  });
+
+  // ── Daily summary ──
+  document.getElementById('dailySales').textContent     = d.dailySummary.sales;
+  document.getElementById('dailyInventory').textContent = d.dailySummary.inventoryEntries;
+  document.getElementById('dailyFinance').textContent   = d.dailySummary.financeRequests;
+  document.getElementById('dailyVip').textContent       = d.dailySummary.vipClients;
+}
+
+// ─────────────────────────────────────────────
+//  Helpers
+// ─────────────────────────────────────────────
+function setKpi(id, kpiObj, isCurrency, suffix = '') {
+  const val    = kpiObj?.value ?? 0;
+  const change = kpiObj?.change ?? 0;
+
+  document.getElementById(id).textContent =
+    isCurrency ? formatSAR(val) : (val + suffix);
+
+  const changeEl = document.getElementById(id + 'Change');
+  const sign     = change >= 0 ? '+' : '';
+  changeEl.textContent = `${sign}${change.toFixed(1)}% مقارنةً بالفترة السابقة`;
+  changeEl.className   = 'kpi-change ' + (change >= 0 ? 'up' : 'down');
+}
+
+function formatSAR(val, short = false) {
+  if (short) {
+    if (val >= 1_000_000) return (val / 1_000_000).toFixed(1) + 'M';
+    if (val >= 1_000)     return (val / 1_000).toFixed(0) + 'K';
+    return val;
+  }
+  return new Intl.NumberFormat('ar-SA', {
+    style: 'currency', currency: 'SAR', maximumFractionDigits: 0,
+  }).format(val);
+}
+
+function showToast(msg, isError = false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = isError ? '#C0392B' : '#1A2233';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ─────────────────────────────────────────────
+//  Auto-load on page open
+// ─────────────────────────────────────────────
+window.addEventListener('DOMContentLoaded', syncSheets);
+</script>
 </body>
 </html>
