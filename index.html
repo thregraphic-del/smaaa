@@ -1,1644 +1,776 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة الأداء التنفيذية - معرض السيارات VIP</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    body {
-      font-family: 'IBM Plex Sans Arabic', sans-serif;
-      background: #080808;
-      color: #fff;
-      min-height: 100vh;
-      overflow: hidden;
-    }
-
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: #0d0d0d; }
-    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 4px; }
-
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
-    @keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.7; } 100% { transform: scale(2); opacity: 0; } }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 218px 1fr 286px;
-      height: 100vh;
-      background: #080808;
-    }
-
-    /* ═══ SIDEBAR ═══ */
-    .sidebar {
-      background: #0d0d0d;
-      border-left: 1px solid rgba(255,255,255,0.06);
-      display: flex;
-      flex-direction: column;
-      overflow-y: auto;
-    }
-
-    .sidebar-logo {
-      padding: 20px 18px 18px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .logo-wrap {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .logo-icon {
-      width: 34px;
-      height: 34px;
-      background: #FF004D;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      box-shadow: 0 0 18px rgba(255,0,77,0.4);
-    }
-
-    .logo-name { font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -0.2px; }
-    .logo-sub { font-size: 10px; color: #A1A1AA; }
-
-    nav {
-      flex: 1;
-      padding: 14px 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
-
-    .nav-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 9px 11px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.15s;
-      text-decoration: none;
-    }
-
-    .nav-item:hover { background: rgba(255,255,255,0.04); }
-
-    .nav-item.active {
-      background: rgba(255,0,77,0.12);
-      border-right: 2px solid #FF004D;
-    }
-
-    .nav-item span { font-size: 13px; color: #A1A1AA; }
-    .nav-item.active span { color: #fff; font-weight: 500; }
-
-    .nav-divider {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px solid rgba(255,255,255,0.05);
-    }
-
-    .sidebar-user {
-      padding: 14px 18px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .user-avatar {
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #FF004D, #FF3366);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .user-name { font-size: 12px; color: #fff; font-weight: 500; }
-    .user-role { font-size: 10px; color: #A1A1AA; }
-
-    /* ═══ MAIN ═══ */
-    main {
-      overflow-y: auto;
-      padding: 22px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      background: radial-gradient(ellipse at 95% 0%, rgba(255,0,77,0.06) 0%, transparent 50%), #080808;
-    }
-
-    /* Header */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-
-    .header h1 {
-      font-size: 20px;
-      font-weight: 700;
-      color: #fff;
-      letter-spacing: -0.4px;
-      line-height: 1.2;
-    }
-
-    .header-meta {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin-top: 6px;
-      flex-wrap: wrap;
-    }
-
-    .sync-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #22c55e;
-      animation: blink 2.5s infinite;
-      flex-shrink: 0;
-    }
-
-    .sync-text { font-size: 12px; color: #A1A1AA; }
-
-    #sheets-status { font-size: 11px; color: #555; font-weight: 500; }
-
-    #sync-btn {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 6px;
-      padding: 4px 10px;
-      color: #A1A1AA;
-      font-size: 11px;
-      cursor: pointer;
-      font-family: inherit;
-      transition: all 0.2s;
-    }
-
-    #sync-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); }
-
-    .btn-primary {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      background: #FF004D;
-      border: none;
-      border-radius: 8px;
-      padding: 9px 16px;
-      color: #fff;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      flex-shrink: 0;
-      box-shadow: 0 0 22px rgba(255,0,77,0.32);
-      transition: all 0.2s;
-    }
-
-    .btn-primary:hover { box-shadow: 0 0 32px rgba(255,0,77,0.5); transform: translateY(-1px); }
-
-    /* KPI Cards */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 12px;
-    }
-
-    .kpi-card {
-      background: #121212;
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 12px;
-      padding: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .kpi-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(255,0,77,0.5), transparent);
-    }
-
-    .kpi-card:nth-child(2)::before { background: linear-gradient(90deg, transparent, rgba(255,0,77,0.4), transparent); }
-    .kpi-card:nth-child(4)::before { background: linear-gradient(90deg, transparent, rgba(255,0,77,0.25), transparent); }
-
-    .kpi-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-    }
-
-    .kpi-label { font-size: 11px; color: #A1A1AA; margin-bottom: 7px; }
-
-    .kpi-value {
-      font-size: 26px;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1;
-      letter-spacing: -1px;
-    }
-
-    .kpi-unit { font-size: 13px; color: #A1A1AA; font-weight: 400; }
-    .kpi-sub { font-size: 10px; color: #A1A1AA; margin-top: 3px; }
-
-    .kpi-icon {
-      background: rgba(255,0,77,0.12);
-      border-radius: 9px;
-      padding: 8px;
-      flex-shrink: 0;
-    }
-
-    .kpi-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-    }
-
-    .kpi-change { font-size: 11px; font-weight: 600; }
-    .kpi-change.up { color: #22c55e; }
-    .kpi-change.down { color: #FF004D; }
-    .kpi-change-label { color: #555; font-weight: 400; }
-
-    /* Filters */
-    .filters {
-      display: flex;
-      gap: 9px;
-      align-items: center;
-    }
-
-    .filter-btn {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      background: #0a0a0a;
-      border-radius: 8px;
-      padding: 7px 12px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-
-    .filter-btn.active {
-      border: 1px solid #FF004D;
-      box-shadow: 0 0 16px rgba(255,0,77,0.2);
-    }
-
-    .filter-btn.inactive {
-      border: 1px solid rgba(255,0,77,0.3);
-    }
-
-    .filter-btn:hover { border-color: #FF004D; }
-    .filter-btn span { font-size: 12px; }
-    .filter-btn.active span { color: #fff; font-weight: 500; }
-    .filter-btn.inactive span { color: #A1A1AA; }
-
-    /* Dropdowns */
-    .filter-dropdown { position: relative; }
-
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      top: calc(100% + 6px);
-      right: 0;
-      z-index: 100;
-      background: #1a1a1a;
-      border: 1px solid rgba(255,0,77,0.25);
-      border-radius: 8px;
-      overflow: hidden;
-      min-width: 140px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
-    }
-
-    .filter-dropdown.open .dropdown-menu { display: block; }
-    .filter-dropdown.open .f-arrow { transform: rotate(180deg); }
-    .f-arrow { transition: transform 0.2s; }
-
-    .dd-item {
-      padding: 9px 14px;
-      font-size: 12px;
-      color: #A1A1AA;
-      cursor: pointer;
-      transition: background 0.12s;
-      font-family: 'IBM Plex Sans Arabic', sans-serif;
-    }
-
-    .dd-item:hover { background: rgba(255,0,77,0.08); color: #fff; }
-    .dd-item.active { color: #FF004D; font-weight: 600; }
-
-    /* Mid Row */
-    .mid-row {
-      display: grid;
-      grid-template-columns: 210px 1fr 210px;
-      gap: 12px;
-      align-items: start;
-    }
-
-    /* Cards general */
-    .card {
-      background: #121212;
-      border: 1px solid rgba(255,255,255,0.07);
-      border-radius: 12px;
-      padding: 16px;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 14px;
-    }
-
-    .card-title { font-size: 13px; font-weight: 600; color: #fff; }
-    .card-link { font-size: 11px; color: #FF004D; cursor: pointer; }
-    .card-link:hover { opacity: 0.8; }
-
-    /* Activity */
-    .activity-list { display: flex; flex-direction: column; }
-
-    .activity-item {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 9px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-    }
-
-    .activity-item:last-child { border-bottom: none; }
-
-    .activity-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      margin-top: 4px;
-      flex-shrink: 0;
-    }
-
-    .activity-text { font-size: 11.5px; color: #e4e4e7; line-height: 1.5; }
-    .activity-time { font-size: 10px; color: #555; margin-top: 2px; }
-    .activity-warn { font-size: 10px; color: #FF004D; margin-top: 2px; }
-
-    /* Chart containers */
-    .chart-wrap { height: 205px; position: relative; }
-    .donut-wrap { height: 155px; position: relative; }
-
-    .chart-legend {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .legend-item { display: flex; align-items: center; gap: 5px; }
-    .legend-dot { width: 10px; height: 3px; border-radius: 2px; }
-
-    /* Donut legend */
-    .donut-legend {
-      margin-top: 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-    }
-
-    .donut-legend-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .donut-legend-label {
-      display: flex;
-      align-items: center;
-      gap: 7px;
-    }
-
-    .donut-dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .donut-legend-label span { font-size: 11px; color: #A1A1AA; }
-    .donut-legend-val { font-size: 12px; color: #fff; font-weight: 600; }
-
-    /* Bottom Row */
-    .bottom-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-      padding-bottom: 12px;
-    }
-
-    /* Brands Table */
-    .brands-header-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 80px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      margin-bottom: 2px;
-    }
-
-    .brands-header-row span { font-size: 10px; color: #555; font-weight: 500; }
-
-    .brand-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr 80px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
-      align-items: center;
-      gap: 4px;
-    }
-
-    .brand-row:last-child { border-bottom: none; }
-
-    .brand-identity {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .brand-icon {
-      width: 24px;
-      height: 24px;
-      background: rgba(255,0,77,0.12);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 10px;
-      color: #FF004D;
-      font-weight: 700;
-      flex-shrink: 0;
-    }
-
-    .brand-name { font-size: 12px; color: #fff; }
-    .brand-revenue { font-size: 12px; color: #fff; font-weight: 500; }
-    .brand-profit { font-size: 12px; color: #22c55e; font-weight: 500; }
-
-    .progress-bar-wrap {
-      margin-top: 5px;
-      height: 2px;
-      background: rgba(255,255,255,0.06);
-      border-radius: 2px;
-    }
-
-    .progress-bar-fill {
-      height: 100%;
-      background: #FF004D;
-      border-radius: 2px;
-    }
-
-    /* Branch Performance */
-    .branch-list { display: flex; flex-direction: column; gap: 15px; }
-
-    .branch-item {}
-
-    .branch-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 7px;
-    }
-
-    .branch-name { font-size: 12px; color: #e4e4e7; }
-    .branch-count { font-size: 9px; color: #555; margin-right: 4px; }
-    .branch-value { font-size: 12px; color: #fff; font-weight: 600; }
-
-    .branch-badge {
-      font-size: 10px;
-      padding: 2px 5px;
-      border-radius: 4px;
-    }
-
-    .branch-badge.up { color: #22c55e; background: rgba(34,197,94,0.1); }
-    .branch-badge.neutral { color: #A1A1AA; background: rgba(161,161,170,0.1); }
-
-    .branch-bar-wrap {
-      background: rgba(255,255,255,0.06);
-      border-radius: 6px;
-      height: 6px;
-      overflow: hidden;
-    }
-
-    .branch-bar-fill {
-      height: 100%;
-      background: linear-gradient(90deg, #FF004D, #FF3366);
-      border-radius: 6px;
-    }
-
-    /* ═══ RIGHT PANEL ═══ */
-    .right-panel {
-      background: #0d0d0d;
-      border-right: 1px solid rgba(255,255,255,0.06);
-      padding: 22px 16px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-
-    .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-
-    .panel-title { font-size: 13px; font-weight: 600; color: #fff; }
-
-    .alert-badge {
-      background: rgba(255,0,77,0.14);
-      border: 1px solid rgba(255,0,77,0.25);
-      border-radius: 6px;
-      padding: 3px 8px;
-    }
-
-    .alert-badge span { font-size: 10px; color: #FF004D; font-weight: 600; }
-
-    .recommendations { display: flex; flex-direction: column; gap: 8px; }
-
-    .rec-card {
-      border-radius: 10px;
-      padding: 12px;
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-    }
-
-    .rec-card.green {
-      background: #121212;
-      border: 1px solid rgba(34,197,94,0.18);
-    }
-
-    .rec-card.yellow {
-      background: #121212;
-      border: 1px solid rgba(245,158,11,0.2);
-    }
-
-    .rec-card.red {
-      background: rgba(255,0,77,0.04);
-      border: 1px solid rgba(255,0,77,0.28);
-    }
-
-    .rec-card.forecast {
-      background: linear-gradient(140deg, rgba(255,0,77,0.1), rgba(255,51,102,0.04));
-      border: 1px solid rgba(255,0,77,0.22);
-      flex-direction: column;
-      gap: 0;
-    }
-
-    .rec-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      margin-top: 3px;
-      flex-shrink: 0;
-    }
-
-    .rec-dot.blink { animation: blink 1.8s infinite; }
-
-    .rec-text { font-size: 12px; color: #e4e4e7; line-height: 1.55; margin-bottom: 3px; }
-    .rec-tag { font-size: 10px; }
-    .rec-tag.green { color: #22c55e; }
-    .rec-tag.yellow { color: #f59e0b; }
-    .rec-tag.red { color: #FF004D; font-weight: 600; }
-
-    .forecast-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .forecast-header span { font-size: 12px; color: #e4e4e7; }
-
-    .forecast-number {
-      text-align: center;
-      padding: 4px 0;
-    }
-
-    .forecast-pct {
-      font-size: 32px;
-      font-weight: 700;
-      color: #FF3366;
-      letter-spacing: -1.5px;
-      line-height: 1;
-    }
-
-    .forecast-label { font-size: 10px; color: #A1A1AA; margin-top: 4px; }
-
-    /* Daily Summary */
-    .daily-summary {
-      margin-top: auto;
-      padding-top: 16px;
-      border-top: 1px solid rgba(255,255,255,0.06);
-    }
-
-    .daily-label { font-size: 10px; color: #555; margin-bottom: 10px; font-weight: 500; }
-
-    .daily-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 7px;
-    }
-
-    .daily-card {
-      background: #121212;
-      border: 1px solid rgba(255,255,255,0.05);
-      border-radius: 8px;
-      padding: 11px;
-      text-align: center;
-    }
-
-    .daily-number { font-size: 20px; font-weight: 700; line-height: 1; }
-    .daily-card-label { font-size: 10px; color: #555; margin-top: 3px; }
-
-    /* Loading state */
-    main { transition: opacity 0.25s; }
-    main.loading { opacity: 0.45; pointer-events: none; }
-    .kpi-value, .daily-number, .branch-value { transition: all 0.35s ease; }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
 </head>
 <body>
+<x-dc>
+<helmet>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap');
 
-<div class="layout">
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  <!-- ═══ SIDEBAR ═══ -->
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="logo-wrap">
-        <div class="logo-icon">
-          <svg width="17" height="17" fill="none" viewBox="0 0 24 24">
-            <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v5" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
-            <circle cx="16" cy="17" r="3" stroke="#fff" stroke-width="2"/>
-            <circle cx="7" cy="17" r="3" stroke="#fff" stroke-width="2"/>
-          </svg>
-        </div>
-        <div>
-          <div class="logo-name">VIP Auto</div>
-          <div class="logo-sub">معرض السيارات</div>
-        </div>
+:root {
+  --dark-bg: #0f1419;
+  --dark-card: #1a1f2e;
+  --dark-border: #2a3142;
+  --neon-green: #00ff41;
+  --tiffany-blue: #14b8a6;
+  --neon-red: #ff3366;
+  --neon-orange: #ff9500;
+  --text-primary: #e4e4e7;
+  --text-secondary: #a1a1a6;
+}
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background-color: var(--dark-bg);
+  color: var(--text-primary);
+  direction: rtl;
+  overflow-x: hidden;
+}
+
+.dashboard {
+  min-height: 100vh;
+  padding: 32px;
+  background: linear-gradient(135deg, var(--dark-bg) 0%, #151b28 100%);
+}
+
+.dashboard-header {
+  margin-bottom: 40px;
+  text-align: right;
+}
+
+.dashboard-title {
+  font-size: 32px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(135deg, var(--neon-green) 0%, var(--tiffany-blue) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.dashboard-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.loading-spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--dark-border);
+  border-top-color: var(--neon-green);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-text {
+  color: var(--text-secondary);
+  font-size: 14px;
+}
+
+.filters-section {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filter-input {
+  padding: 10px 16px;
+  background-color: var(--dark-card);
+  border: 1px solid var(--dark-border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: 'Cairo', sans-serif;
+  font-size: 13px;
+  min-width: 160px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.filter-input:hover {
+  border-color: var(--tiffany-blue);
+  box-shadow: 0 0 12px rgba(20, 184, 166, 0.2);
+}
+
+.filter-input:focus {
+  outline: none;
+  border-color: var(--neon-green);
+  box-shadow: 0 0 16px rgba(0, 255, 65, 0.3);
+}
+
+.kpi-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+.kpi-card {
+  background: linear-gradient(135deg, var(--dark-card) 0%, rgba(26, 31, 46, 0.7) 100%);
+  border: 1px solid var(--dark-border);
+  border-radius: 12px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--neon-green) 0%, transparent 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.kpi-card:nth-child(2)::before {
+  background: linear-gradient(180deg, var(--tiffany-blue) 0%, transparent 100%);
+}
+
+.kpi-card:nth-child(3)::before {
+  background: linear-gradient(180deg, var(--neon-orange) 0%, transparent 100%);
+}
+
+.kpi-card:nth-child(4)::before {
+  background: linear-gradient(180deg, var(--neon-red) 0%, transparent 100%);
+}
+
+.kpi-card:hover::before { opacity: 1; }
+
+.kpi-card:hover {
+  border-color: var(--tiffany-blue);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(20, 184, 166, 0.15);
+}
+
+.kpi-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.kpi-value {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.kpi-subtext {
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.chart-card {
+  background: linear-gradient(135deg, var(--dark-card) 0%, rgba(26, 31, 46, 0.7) 100%);
+  border: 1px solid var(--dark-border);
+  border-radius: 12px;
+  padding: 24px;
+  transition: all 0.3s ease;
+}
+
+.chart-card:hover {
+  border-color: var(--tiffany-blue);
+  box-shadow: 0 12px 32px rgba(20, 184, 166, 0.15);
+}
+
+.chart-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.chart-container {
+  position: relative;
+  height: 300px;
+  width: 100%;
+}
+
+canvas { max-height: 300px; }
+
+.insights-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.insight-card {
+  background: linear-gradient(135deg, rgba(0, 255, 65, 0.05) 0%, rgba(20, 184, 166, 0.05) 100%);
+  border: 1px solid rgba(0, 255, 65, 0.2);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.insight-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--neon-green);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.insight-content {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.insight-detail {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.table-section { margin-top: 40px; }
+
+.table-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 20px;
+  text-align: right;
+}
+
+.table-wrapper {
+  background: linear-gradient(135deg, var(--dark-card) 0%, rgba(26, 31, 46, 0.7) 100%);
+  border: 1px solid var(--dark-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  direction: rtl;
+}
+
+thead {
+  background-color: rgba(0, 255, 65, 0.05);
+  border-bottom: 2px solid var(--dark-border);
+}
+
+th {
+  padding: 16px;
+  text-align: right;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--neon-green);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--dark-border);
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+tbody tr:hover { background-color: rgba(20, 184, 166, 0.05); }
+tbody tr:last-child td { border-bottom: none; }
+
+@media (max-width: 1024px) {
+  .charts-grid { grid-template-columns: 1fr; }
+  .kpi-section { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 640px) {
+  .dashboard { padding: 16px; }
+  .dashboard-title { font-size: 24px; }
+  .kpi-section { grid-template-columns: 1fr; }
+  .filters-section { flex-direction: column-reverse; }
+  .filter-input { min-width: 100%; }
+  .charts-grid { grid-template-columns: 1fr; }
+}
+</style>
+</helmet>
+
+<div class="dashboard">
+  <div class="dashboard-header">
+    <h1 class="dashboard-title">لوحة المعلومات التنفيذية</h1>
+    <p class="dashboard-subtitle">نظرة شاملة على مبيعات المركبات والأداء حسب البيانات الفعلية</p>
+  </div>
+
+  <sc-if value="{{ isLoading }}">
+    <div class="loading-overlay">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">جارٍ تحميل البيانات...</p>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ isReady }}">
+    <div class="filters-section">
+      <div class="filter-group">
+        <label class="filter-label">الشهر</label>
+        <select class="filter-input" onChange="{{ handleMonthFilter }}">
+          <option value="">جميع الأشهر</option>
+          {{ monthOptions }}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">العلامة التجارية</label>
+        <select class="filter-input" onChange="{{ handleBrandFilter }}">
+          <option value="">جميع العلامات</option>
+          {{ brandOptions }}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">الفرع</label>
+        <select class="filter-input" onChange="{{ handleBranchFilter }}">
+          <option value="">جميع الفروع</option>
+          {{ branchOptions }}
+        </select>
+      </div>
+      <div class="filter-group">
+        <label class="filter-label">السنة</label>
+        <select class="filter-input" onChange="{{ handleYearFilter }}">
+          <option value="">جميع السنوات</option>
+          {{ yearOptions }}
+        </select>
       </div>
     </div>
 
-    <nav>
-      <a class="nav-item active">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-          <rect x="3" y="3" width="8" height="8" rx="1" stroke="#FF004D" stroke-width="2"/>
-          <rect x="13" y="3" width="8" height="8" rx="1" stroke="#FF004D" stroke-width="2"/>
-          <rect x="3" y="13" width="8" height="8" rx="1" stroke="#FF004D" stroke-width="2"/>
-          <rect x="13" y="13" width="8" height="8" rx="1" stroke="#FF004D" stroke-width="2"/>
-        </svg>
-        <span>الرئيسية</span>
-      </a>
-      <a class="nav-item">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-          <path d="M18 20V10M12 20V4M6 20v-6" stroke="#A1A1AA" stroke-width="2" stroke-linecap="round"/>
-        </svg>
-        <span>المبيعات</span>
-      </a>
-      <a class="nav-item">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-          <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z" stroke="#A1A1AA" stroke-width="2"/>
-          <path d="M3 8l9 5 9-5M12 3v18" stroke="#A1A1AA" stroke-width="2"/>
-        </svg>
-        <span>المخزون</span>
-      </a>
-      <a class="nav-item">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-          <circle cx="9" cy="7" r="4" stroke="#A1A1AA" stroke-width="2"/>
-          <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" stroke="#A1A1AA" stroke-width="2"/>
-          <path d="M16 3.13a4 4 0 010 7.75M21 21v-2a4 4 0 00-3-3.87" stroke="#A1A1AA" stroke-width="2"/>
-        </svg>
-        <span>العملاء</span>
-      </a>
-      <a class="nav-item">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-          <circle cx="12" cy="8" r="4" stroke="#A1A1AA" stroke-width="2"/>
-          <path d="M4 21v-2a6 6 0 016-6h4a6 6 0 016 6v2" stroke="#A1A1AA" stroke-width="2"/>
-        </svg>
-        <span>الموظفين</span>
-      </a>
-      <a class="nav-item">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-          <path d="M3 21h18M4 21V7l8-4 8 4v14M9 21V12h6v9" stroke="#A1A1AA" stroke-width="2" stroke-linejoin="round"/>
-        </svg>
-        <span>الفروع</span>
-      </a>
-      <a class="nav-item">
-        <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#A1A1AA" stroke-width="2"/>
-          <path d="M14 2v6h6M8 13h8M8 17h5" stroke="#A1A1AA" stroke-width="2"/>
-        </svg>
-        <span>التقارير</span>
-      </a>
-      <div class="nav-divider">
-        <a class="nav-item">
-          <svg width="15" height="15" fill="none" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="3" stroke="#A1A1AA" stroke-width="2"/>
-            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="#A1A1AA" stroke-width="2"/>
-          </svg>
-          <span>الإعدادات</span>
-        </a>
-      </div>
-    </nav>
-
-    <div class="sidebar-user">
-      <div class="user-avatar">م</div>
-      <div style="flex:1;min-width:0">
-        <div class="user-name">محمد الأحمدي</div>
-        <div class="user-role">مدير عام</div>
-      </div>
-      <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
-        <path d="M9 18l6-6-6-6" stroke="#555" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-  </aside>
-
-  <!-- ═══ MAIN ═══ -->
-  <main>
-
-    <!-- Header -->
-    <div class="header">
-      <div>
-        <h1>لوحة الأداء التنفيذية — معرض السيارات VIP</h1>
-        <div class="header-meta">
-          <div style="display:flex;align-items:center;gap:6px">
-            <div class="sync-dot"></div>
-            <span id="last-sync-text" class="sync-text">آخر تحديث للبيانات: اليوم 09:00 صباحاً</span>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span id="sheets-status">● جاري الاتصال بـ Google Sheets...</span>
-            <button id="sync-btn" onclick="syncSheets()">
-              <svg width="11" height="11" fill="none" viewBox="0 0 24 24">
-                <path d="M21 12a9 9 0 00-9-9 9.75 9.75 0 00-6.74 2.74L3 8M3 3v5h5M3 12a9 9 0 009 9 9.75 9.75 0 006.74-2.74L21 16M21 21v-5h-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              مزامنة
-            </button>
-          </div>
-        </div>
-      </div>
-      <button class="btn-primary">
-        <svg width="13" height="13" fill="none" viewBox="0 0 24 24">
-          <path d="M12 5v14M5 12h14" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-        </svg>
-        إضافة سيارة
-      </button>
-    </div>
-
-    <!-- KPI Cards -->
-    <div class="kpi-grid">
-
+    <div class="kpi-section">
       <div class="kpi-card">
-        <div class="kpi-top">
-          <div>
-            <div class="kpi-label">إجمالي الإيرادات</div>
-            <div class="kpi-value" id="kpi-revenue-val">2.48 <span class="kpi-unit">م</span></div>
-            <div class="kpi-sub">ريال سعودي</div>
-          </div>
-          <div class="kpi-icon">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-              <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" stroke="#FF004D" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-        </div>
-        <div class="kpi-bottom">
-          <span id="kpi-rev-change" class="kpi-change up">▲ 18.4% <span class="kpi-change-label">الشهر السابق</span></span>
-          <svg width="72" height="24" viewBox="0 0 72 24">
-            <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FF004D" stop-opacity="0.38"/>
-              <stop offset="100%" stop-color="#FF004D" stop-opacity="0"/>
-            </linearGradient></defs>
-            <polygon points="0,20 10,17 20,19 30,12 42,10 54,6 72,3 72,24 0,24" fill="url(#g1)"/>
-            <polyline points="0,20 10,17 20,19 30,12 42,10 54,6 72,3" fill="none" stroke="#FF004D" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-          </svg>
-        </div>
+        <div class="kpi-label">إجمالي المبيعات</div>
+        <div class="kpi-value">{{ totalSalesFormatted }}</div>
+        <div class="kpi-subtext">{{ totalSalesChange }}</div>
       </div>
-
       <div class="kpi-card">
-        <div class="kpi-top">
-          <div>
-            <div class="kpi-label">إجمالي الأرباح</div>
-            <div class="kpi-value" id="kpi-profit-val">487 <span class="kpi-unit">ألف</span></div>
-            <div class="kpi-sub">ريال سعودي</div>
-          </div>
-          <div class="kpi-icon">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-              <path d="M22 12h-4l-3 9L9 3l-3 9H2" stroke="#FF004D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-        <div class="kpi-bottom">
-          <span id="kpi-profit-change" class="kpi-change up">▲ 12.6% <span class="kpi-change-label">الشهر السابق</span></span>
-          <svg width="72" height="24" viewBox="0 0 72 24">
-            <defs><linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FF004D" stop-opacity="0.38"/>
-              <stop offset="100%" stop-color="#FF004D" stop-opacity="0"/>
-            </linearGradient></defs>
-            <polygon points="0,21 10,18 20,21 30,14 42,12 54,8 72,5 72,24 0,24" fill="url(#g2)"/>
-            <polyline points="0,21 10,18 20,21 30,14 42,12 54,8 72,5" fill="none" stroke="#FF004D" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-          </svg>
-        </div>
+        <div class="kpi-label">السيارات المباعة</div>
+        <div class="kpi-value">{{ unitsSoldFormatted }}</div>
+        <div class="kpi-subtext">{{ unitsSoldChange }}</div>
       </div>
-
       <div class="kpi-card">
-        <div class="kpi-top">
-          <div>
-            <div class="kpi-label">السيارات المباعة</div>
-            <div class="kpi-value" id="kpi-sold-val">67 <span class="kpi-unit">سيارة</span></div>
-            <div class="kpi-sub">هذا الشهر</div>
-          </div>
-          <div class="kpi-icon">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-              <path d="M5 17H3a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v5" stroke="#FF004D" stroke-width="2" stroke-linejoin="round"/>
-              <circle cx="16" cy="17" r="3" stroke="#FF004D" stroke-width="2"/>
-              <circle cx="7" cy="17" r="3" stroke="#FF004D" stroke-width="2"/>
-            </svg>
-          </div>
-        </div>
-        <div class="kpi-bottom">
-          <span id="kpi-sold-change" class="kpi-change up">▲ 9.2% <span class="kpi-change-label">الشهر السابق</span></span>
-          <svg width="72" height="24" viewBox="0 0 72 24">
-            <defs><linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FF004D" stop-opacity="0.38"/>
-              <stop offset="100%" stop-color="#FF004D" stop-opacity="0"/>
-            </linearGradient></defs>
-            <polygon points="0,22 10,20 20,18 30,16 42,13 54,9 72,6 72,24 0,24" fill="url(#g3)"/>
-            <polyline points="0,22 10,20 20,18 30,16 42,13 54,9 72,6" fill="none" stroke="#FF004D" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-          </svg>
-        </div>
+        <div class="kpi-label">متوسط السعر</div>
+        <div class="kpi-value">{{ averagePriceFormatted }}</div>
+        <div class="kpi-subtext">{{ averagePriceChange }}</div>
       </div>
-
       <div class="kpi-card">
-        <div class="kpi-top">
-          <div>
-            <div class="kpi-label">معدل دوران المخزون</div>
-            <div class="kpi-value" id="kpi-inv-val">4.3 <span class="kpi-unit">مرة</span></div>
-            <div class="kpi-sub">سنوياً</div>
-          </div>
-          <div class="kpi-icon">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-              <path d="M3 12a9 9 0 009 9 9.75 9.75 0 006.74-2.74L21 16M21 21v-5h-5" stroke="#FF004D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M21 12a9 9 0 00-9-9 9.75 9.75 0 00-6.74 2.74L3 8M3 3v5h5" stroke="#FF004D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </div>
-        </div>
-        <div class="kpi-bottom">
-          <span id="kpi-inv-change" class="kpi-change down">▼ 2.1% <span class="kpi-change-label">الشهر السابق</span></span>
-          <svg width="72" height="24" viewBox="0 0 72 24">
-            <defs><linearGradient id="g4" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FF004D" stop-opacity="0.38"/>
-              <stop offset="100%" stop-color="#FF004D" stop-opacity="0"/>
-            </linearGradient></defs>
-            <polygon points="0,5 10,7 20,10 30,13 42,16 54,19 72,22 72,24 0,24" fill="url(#g4)"/>
-            <polyline points="0,5 10,7 20,10 30,13 42,16 54,19 72,22" fill="none" stroke="#FF004D" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/>
-          </svg>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Filters -->
-    <div class="filters" id="filters-bar">
-
-      <div class="filter-dropdown" id="fd-period">
-        <div class="filter-btn active" onclick="toggleDropdown('fd-period')">
-          <svg width="12" height="12" fill="none" viewBox="0 0 24 24">
-            <rect x="3" y="4" width="18" height="18" rx="2" stroke="#FF004D" stroke-width="2"/>
-            <path d="M16 2v4M8 2v4M3 10h18" stroke="#FF004D" stroke-width="2" stroke-linecap="round"/>
-          </svg>
-          <span class="filter-label">هذا الشهر</span>
-          <svg class="f-arrow" width="9" height="9" fill="none" viewBox="0 0 24 24">
-            <path d="M6 9l6 6 6-6" stroke="#FF004D" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="dropdown-menu">
-          <div class="dd-item active" data-value="month"  onclick="selectFilter('fd-period','month','هذا الشهر',this)">هذا الشهر</div>
-          <div class="dd-item"        data-value="last_month" onclick="selectFilter('fd-period','last_month','الشهر الماضي',this)">الشهر الماضي</div>
-          <div class="dd-item"        data-value="quarter" onclick="selectFilter('fd-period','quarter','هذا الربع',this)">هذا الربع</div>
-          <div class="dd-item"        data-value="year"    onclick="selectFilter('fd-period','year','هذه السنة',this)">هذه السنة</div>
-        </div>
-      </div>
-
-      <div class="filter-dropdown" id="fd-branch">
-        <div class="filter-btn inactive" onclick="toggleDropdown('fd-branch')">
-          <span class="filter-label">جميع الفروع</span>
-          <svg class="f-arrow" width="9" height="9" fill="none" viewBox="0 0 24 24">
-            <path d="M6 9l6 6 6-6" stroke="#555" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="dropdown-menu">
-          <div class="dd-item active" data-value="all"    onclick="selectFilter('fd-branch','all','جميع الفروع',this)">جميع الفروع</div>
-          <div class="dd-item"        data-value="جدة"    onclick="selectFilter('fd-branch','جدة','جدة',this)">جدة</div>
-          <div class="dd-item"        data-value="الرياض" onclick="selectFilter('fd-branch','الرياض','الرياض',this)">الرياض</div>
-          <div class="dd-item"        data-value="أبها"   onclick="selectFilter('fd-branch','أبها','أبها',this)">أبها</div>
-          <div class="dd-item"        data-value="الدمام" onclick="selectFilter('fd-branch','الدمام','الدمام',this)">الدمام</div>
-        </div>
-      </div>
-
-      <div class="filter-dropdown" id="fd-brand">
-        <div class="filter-btn inactive" onclick="toggleDropdown('fd-brand')">
-          <span class="filter-label">جميع الماركات</span>
-          <svg class="f-arrow" width="9" height="9" fill="none" viewBox="0 0 24 24">
-            <path d="M6 9l6 6 6-6" stroke="#555" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="dropdown-menu">
-          <div class="dd-item active" data-value="all"          onclick="selectFilter('fd-brand','all','جميع الماركات',this)">جميع الماركات</div>
-          <div class="dd-item"        data-value="تويوتا"     onclick="selectFilter('fd-brand','تويوتا','تويوتا',this)">تويوتا</div>
-          <div class="dd-item"        data-value="مرسيدس"     onclick="selectFilter('fd-brand','مرسيدس','مرسيدس',this)">مرسيدس</div>
-          <div class="dd-item"        data-value="كيا"         onclick="selectFilter('fd-brand','كيا','كيا',this)">كيا</div>
-          <div class="dd-item"        data-value="نيسان"       onclick="selectFilter('fd-brand','نيسان','نيسان',this)">نيسان</div>
-          <div class="dd-item"        data-value="شيفروليه"    onclick="selectFilter('fd-brand','شيفروليه','شيفروليه',this)">شيفروليه</div>
-          <div class="dd-item"        data-value="بي إم دبليو" onclick="selectFilter('fd-brand','بي إم دبليو','بي إم دبليو',this)">بي إم دبليو</div>
-        </div>
-      </div>
-
-      <div class="filter-dropdown" id="fd-payment">
-        <div class="filter-btn inactive" onclick="toggleDropdown('fd-payment')">
-          <span class="filter-label">طريقة الدفع</span>
-          <svg class="f-arrow" width="9" height="9" fill="none" viewBox="0 0 24 24">
-            <path d="M6 9l6 6 6-6" stroke="#555" stroke-width="2.5" stroke-linecap="round"/>
-          </svg>
-        </div>
-        <div class="dropdown-menu">
-          <div class="dd-item active" data-value="all"     onclick="selectFilter('fd-payment','all','طريقة الدفع',this)">جميع الطرق</div>
-          <div class="dd-item"        data-value="cash"    onclick="selectFilter('fd-payment','cash','كاش',this)">كاش</div>
-          <div class="dd-item"        data-value="finance" onclick="selectFilter('fd-payment','finance','تمويل بنكي',this)">تمويل بنكي</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Mid Row -->
-    <div class="mid-row">
-
-      <!-- Activity -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">النشاط التشغيلي</span>
-          <span class="card-link">الكل ←</span>
-        </div>
-        <div class="activity-list">
-          <div class="activity-item">
-            <div class="activity-dot" style="background:#22c55e"></div>
-            <div>
-              <div class="activity-text">12 سيارة جديدة دخلت المخزون</div>
-              <div class="activity-time">منذ ساعتين</div>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-dot" style="background:#22c55e"></div>
-            <div>
-              <div class="activity-text">8 سيارات تم بيعها اليوم</div>
-              <div class="activity-time">منذ 3 ساعات</div>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-dot" style="background:#3b82f6"></div>
-            <div>
-              <div class="activity-text">4 طلبات تمويل جديدة</div>
-              <div class="activity-time">منذ 4 ساعات</div>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-dot" style="background:#f59e0b"></div>
-            <div>
-              <div class="activity-text">3 عملاء VIP جدد</div>
-              <div class="activity-time">أمس</div>
-            </div>
-          </div>
-          <div class="activity-item">
-            <div class="activity-dot" style="background:#FF004D;animation:blink 2s infinite"></div>
-            <div>
-              <div class="activity-text">2 سيارة تجاوزت 90 يوم</div>
-              <div class="activity-warn">يحتاج متابعة</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Revenue Chart -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">الإيرادات والأرباح الشهرية</span>
-          <div class="chart-legend">
-            <div class="legend-item">
-              <div class="legend-dot" style="background:#FF004D"></div>
-              <span style="font-size:10px;color:#A1A1AA">الإيرادات</span>
-            </div>
-            <div class="legend-item">
-              <div class="legend-dot" style="background:#fff"></div>
-              <span style="font-size:10px;color:#A1A1AA">الأرباح</span>
-            </div>
-          </div>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="revenueChart"></canvas>
-        </div>
-      </div>
-
-      <!-- Donut Chart -->
-      <div class="card">
-        <div class="card-title" style="margin-bottom:12px">صحة المخزون</div>
-        <div class="donut-wrap">
-          <canvas id="donutChart"></canvas>
-        </div>
-        <div class="donut-legend">
-          <div class="donut-legend-item">
-            <div class="donut-legend-label">
-              <div class="donut-dot" style="background:#22c55e"></div>
-              <span>مخزون صحي</span>
-            </div>
-            <span class="donut-legend-val" id="inv-healthy">72%</span>
-          </div>
-          <div class="donut-legend-item">
-            <div class="donut-legend-label">
-              <div class="donut-dot" style="background:#f59e0b"></div>
-              <span>يحتاج متابعة</span>
-            </div>
-            <span class="donut-legend-val" id="inv-needs">18%</span>
-          </div>
-          <div class="donut-legend-item">
-            <div class="donut-legend-label">
-              <div class="donut-dot" style="background:#FF004D"></div>
-              <span>راكد</span>
-            </div>
-            <span class="donut-legend-val" id="inv-stale">10%</span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Bottom Row -->
-    <div class="bottom-row">
-
-      <!-- Top Brands -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">أفضل الماركات</span>
-          <span class="card-link">التفاصيل ←</span>
-        </div>
-        <div class="brands-header-row">
-          <span>الماركة</span>
-          <span>الإيرادات</span>
-          <span>الربح</span>
-        </div>
-        <div id="brands-table">
-          <div class="brand-row">
-            <div class="brand-identity"><div class="brand-icon">ت</div><span class="brand-name">تويوتا</span></div>
-            <div><span class="brand-revenue">940 ألف</span><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:85%"></div></div></div>
-            <span class="brand-profit">188 ألف</span>
-          </div>
-          <div class="brand-row">
-            <div class="brand-identity"><div class="brand-icon">ل</div><span class="brand-name">لكزس</span></div>
-            <div><span class="brand-revenue">620 ألف</span><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:56%"></div></div></div>
-            <span class="brand-profit">144 ألف</span>
-          </div>
-          <div class="brand-row">
-            <div class="brand-identity"><div class="brand-icon">ه</div><span class="brand-name">هيونداي</span></div>
-            <div><span class="brand-revenue">390 ألف</span><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:35%"></div></div></div>
-            <span class="brand-profit">78 ألف</span>
-          </div>
-          <div class="brand-row">
-            <div class="brand-identity"><div class="brand-icon">ن</div><span class="brand-name">نيسان</span></div>
-            <div><span class="brand-revenue">310 ألف</span><div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:28%"></div></div></div>
-            <span class="brand-profit">52 ألف</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Branch Performance -->
-      <div class="card">
-        <div class="card-header">
-          <span class="card-title">أداء الفروع</span>
-          <span class="card-link">مقارنة تفصيلية ←</span>
-        </div>
-        <div class="branch-list">
-          <div class="branch-item">
-            <div class="branch-header">
-              <div><span class="branch-name">جدة</span><span class="branch-count">3 فروع</span></div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="branch-value">940 ألف</span>
-                <span class="branch-badge up">▲ 22%</span>
-              </div>
-            </div>
-            <div class="branch-bar-wrap"><div class="branch-bar-fill" style="width:85%"></div></div>
-          </div>
-          <div class="branch-item">
-            <div class="branch-header">
-              <div><span class="branch-name">الرياض</span><span class="branch-count">3 فروع</span></div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="branch-value">780 ألف</span>
-                <span class="branch-badge up">▲ 15%</span>
-              </div>
-            </div>
-            <div class="branch-bar-wrap"><div class="branch-bar-fill" style="width:70%"></div></div>
-          </div>
-          <div class="branch-item">
-            <div class="branch-header">
-              <div><span class="branch-name">أبها</span><span class="branch-count">فرع واحد</span></div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <span class="branch-value">420 ألف</span>
-                <span class="branch-badge neutral">± 3%</span>
-              </div>
-            </div>
-            <div class="branch-bar-wrap"><div class="branch-bar-fill" style="width:38%"></div></div>
-          </div>
-          <div class="branch-item">
-            <div class="branch-header">
-              <div><span class="branch-name">الدمام</span><span class="branch-count">فرع واحد</span></div>
-              <div style="display:flex;align-items:center;gap:8px">
-                <span id="branch-dammam-val" class="branch-value">298 ألف</span>
-                <span class="branch-badge neutral">± 1%</span>
-              </div>
-            </div>
-            <div class="branch-bar-wrap"><div id="branch-dammam-bar" class="branch-bar-fill" style="width:27%"></div></div>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
-  </main>
-
-  <!-- ═══ RIGHT PANEL ═══ -->
-  <aside class="right-panel">
-
-    <div class="panel-header">
-      <span class="panel-title">توصيات ذكية</span>
-      <div class="alert-badge"><span>6 تنبيهات</span></div>
-    </div>
-
-    <div class="recommendations">
-
-      <div class="rec-card green">
-        <div class="rec-dot" style="background:#22c55e"></div>
-        <div>
-          <div class="rec-text">فرع جدة الأعلى ربحية هذا الشهر</div>
-          <span class="rec-tag green">فرصة</span>
-        </div>
-      </div>
-
-      <div class="rec-card green">
-        <div class="rec-dot" style="background:#22c55e"></div>
-        <div>
-          <div class="rec-text">لكزس تحقق أعلى هامش ربح</div>
-          <span class="rec-tag green">أداء متميز</span>
-        </div>
-      </div>
-
-      <div class="rec-card yellow">
-        <div class="rec-dot" style="background:#f59e0b"></div>
-        <div>
-          <div class="rec-text">14 سيارة تجاوزت 60 يوم في المخزون</div>
-          <span class="rec-tag yellow">تحتاج متابعة</span>
-        </div>
-      </div>
-
-      <div class="rec-card red">
-        <div class="rec-dot blink" style="background:#FF004D"></div>
-        <div>
-          <div class="rec-text">3 سيارات تجاوزت 120 يوم وتحتاج حملة تصريف</div>
-          <span class="rec-tag red">عاجل</span>
-        </div>
-      </div>
-
-      <div class="rec-card green">
-        <div class="rec-dot" style="background:#22c55e"></div>
-        <div>
-          <div class="rec-text">الموظف أحمد حقق أعلى معدل إغلاق</div>
-          <span class="rec-tag green">أداء متميز</span>
-        </div>
-      </div>
-
-      <div class="rec-card forecast">
-        <div class="forecast-header">
-          <div class="rec-dot" style="background:#FF3366"></div>
-          <span>توقع نمو الإيرادات الشهر القادم</span>
-        </div>
-        <div class="forecast-number">
-          <div class="forecast-pct">+11%</div>
-          <div class="forecast-label">تقدير الذكاء الاصطناعي</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Daily Summary -->
-    <div class="daily-summary">
-      <div class="daily-label">ملخص اليوم</div>
-      <div class="daily-grid">
-        <div class="daily-card">
-          <div id="daily-sales" class="daily-number" style="color:#fff">8</div>
-          <div class="daily-card-label">مبيعات اليوم</div>
-        </div>
-        <div class="daily-card">
-          <div id="daily-inventory" class="daily-number" style="color:#FF004D">12</div>
-          <div class="daily-card-label">إدخال مخزون</div>
-        </div>
-        <div class="daily-card">
-          <div id="daily-finance" class="daily-number" style="color:#22c55e">4</div>
-          <div class="daily-card-label">طلبات تمويل</div>
-        </div>
-        <div class="daily-card">
-          <div id="daily-vip" class="daily-number" style="color:#f59e0b">3</div>
-          <div class="daily-card-label">عملاء VIP</div>
-        </div>
+        <div class="kpi-label">الفروع النشطة</div>
+        <div class="kpi-value">{{ activeBranchesCount }}</div>
+        <div class="kpi-subtext">تم تحديثها اليوم</div>
       </div>
     </div>
 
-  </aside>
+    <div class="charts-grid">
+      <div class="chart-card">
+        <h3 class="chart-title">المبيعات حسب الشهر</h3>
+        <div class="chart-container"><canvas id="monthlySalesChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">المبيعات حسب الفرع</h3>
+        <div class="chart-container"><canvas id="branchSalesChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">توزيع المبيعات حسب العلامة التجارية</h3>
+        <div class="chart-container"><canvas id="brandSalesChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">المبيعات حسب اللون</h3>
+        <div class="chart-container"><canvas id="colorSalesChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">المبيعات التراكمية</h3>
+        <div class="chart-container"><canvas id="cumulativeSalesChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3 class="chart-title">ملخص الأداء الرئيسي</h3>
+        <div class="chart-container"><canvas id="summaryChart"></canvas></div>
+      </div>
+    </div>
 
+    <div class="insights-section">
+      <div class="insight-card">
+        <div class="insight-title">الفرع الأفضل أداءً</div>
+        <div class="insight-content">{{ topBranchName }}</div>
+        <div class="insight-detail">{{ topBranchSales }}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-title">العلامة التجارية الأفضل</div>
+        <div class="insight-content">{{ topBrandName }}</div>
+        <div class="insight-detail">{{ topBrandSales }}</div>
+      </div>
+      <div class="insight-card">
+        <div class="insight-title">أعلى لون مبيعاً</div>
+        <div class="insight-content">{{ topColorName }}</div>
+        <div class="insight-detail">{{ topColorSales }}</div>
+      </div>
+    </div>
+
+    <div class="table-section">
+      <h2 class="table-title">بيانات المبيعات التفصيلية</h2>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>السعر الإجمالي</th>
+              <th>العلامة التجارية</th>
+              <th>اسم العميل</th>
+              <th>تاريخ البيع</th>
+            </tr>
+          </thead>
+          <tbody>
+            <sc-for list="{{ tableData }}" as="row" hint-placeholder-count="5">
+              <tr>
+                <td>{{ row.totalPrice }}</td>
+                <td>{{ row.brand }}</td>
+                <td>{{ row.customerName }}</td>
+                <td>{{ row.saleDate }}</td>
+              </tr>
+            </sc-for>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </sc-if>
 </div>
 
-<script>
-  // ════════════════════════════════════════════════════════
-  //  ربط الأعمدة — عدّل هذه الأسماء لتطابق أعمدة جدولك
-  // ════════════════════════════════════════════════════════
-  const FIELD_MAP = {
-    // KPIs — حقول المؤشرات الرئيسية
-    revenue:          'الإيرادات',        // إجمالي الإيرادات (رقم)
-    profit:           'الأرباح',          // إجمالي الأرباح (رقم)
-    carsSold:         'المبيعات',         // عدد السيارات المباعة (رقم)
-    inventoryRate:    'معدل_الدوران',     // معدل دوران المخزون (رقم)
-
-    // الرسم البياني الشهري
-    month:            'الشهر',            // اسم الشهر (نص)
-    monthRevenue:     'إيرادات_الشهر',   // إيرادات الشهر (رقم)
-    monthProfit:      'أرباح_الشهر',     // أرباح الشهر (رقم)
-
-    // صحة المخزون
-    invHealthy:       'مخزون_صحي',       // نسبة % أو عدد
-    invNeeds:         'يحتاج_متابعة',
-    invStale:         'راكد',
-
-    // أداء الفروع
-    branchName:       'اسم_الفرع',
-    branchRevenue:    'إيرادات_الفرع',
-    branchGrowth:     'نسبة_النمو',
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:&quot;1920&quot;,&quot;height&quot;:&quot;1080&quot;}}">
+class Component extends DCLogic {
+  state = {
+    data: null,
+    isLoading: true,
+    selectedYear: '',
+    selectedBranch: '',
+    selectedBrand: '',
+    selectedMonth: '',
+    charts: {},
   };
 
-  const API_URL = 'https://script.google.com/macros/s/AKfycbzi27j9Cv030loFVpAqIY_A0n2m49FOvOXfmFHKLzMJ_QJnFILsYeWmbKgPdCYzgQU4/exec';
+  componentDidMount() {
+    fetch('./dashboarddata.json')
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(data => {
+        this.setState({ data, isLoading: false });
+      })
+      .catch(err => {
+        console.error('[Dashboard] Failed to load dashboarddata.json:', err);
+        this.setState({ isLoading: false });
+      });
+  }
 
-  // ─── Charts ───
-  Chart.defaults.font.family = "'IBM Plex Sans Arabic', sans-serif";
-  Chart.defaults.color = '#A1A1AA';
+  componentDidUpdate() {
+    if (this.state.data) this.initCharts();
+  }
 
-  const revenueChart = new Chart(document.getElementById('revenueChart'), {
-    data: {
-      labels: ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو'],
-      datasets: [
-        {
-          type: 'bar',
-          label: 'الإيرادات (ألف ريال)',
-          data: [380, 420, 360, 460, 440, 480],
-          backgroundColor: 'rgba(255,0,77,0.75)',
-          hoverBackgroundColor: '#FF004D',
-          borderRadius: 5,
-          borderSkipped: false,
-          order: 2,
-          yAxisID: 'y',
-        },
-        {
+  getFilteredSales() {
+    const d = this.state.data;
+    if (!d) return [];
+    return d.sales.filter(sale => {
+      const branchName = d.branches.find(b => b.id === sale.branchId)?.name;
+      const carBrand = d.cars.find(c => c.id === sale.carId)?.brand;
+      if (this.state.selectedMonth && sale.monthName !== this.state.selectedMonth) return false;
+      if (this.state.selectedYear && sale.year.toString() !== this.state.selectedYear) return false;
+      if (this.state.selectedBranch && branchName !== this.state.selectedBranch) return false;
+      if (this.state.selectedBrand && carBrand !== this.state.selectedBrand) return false;
+      return true;
+    });
+  }
+
+  initCharts() {
+    const d = this.state.data;
+    if (!d) return;
+    setTimeout(() => {
+      const filtered = this.getFilteredSales();
+
+      // Monthly Sales
+      const monthlySalesMap = {};
+      d.months.forEach(m => monthlySalesMap[m] = 0);
+      filtered.forEach(s => { monthlySalesMap[s.monthName] += s.totalPrice; });
+      const monthlyCtx = document.getElementById('monthlySalesChart');
+      if (monthlyCtx && !this.state.charts.monthly) {
+        this.state.charts.monthly = new Chart(monthlyCtx, {
           type: 'line',
-          label: 'الأرباح (ألف ريال)',
-          data: [76, 84, 72, 92, 88, 97],
-          borderColor: '#ffffff',
-          backgroundColor: 'rgba(255,255,255,0.05)',
-          pointBackgroundColor: '#fff',
-          pointBorderColor: '#121212',
-          pointBorderWidth: 2,
-          pointRadius: 4,
-          pointHoverRadius: 6,
-          tension: 0.4,
-          order: 1,
-          yAxisID: 'y1',
-          fill: false,
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1c1c1c',
-          borderColor: 'rgba(255,255,255,0.08)',
-          borderWidth: 1,
-          titleColor: '#fff',
-          bodyColor: '#A1A1AA',
-          padding: 10,
-          callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${ctx.raw}K` }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: '#555', font: { size: 11 } },
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          border: { display: false }
-        },
-        y: {
-          ticks: { color: '#555', font: { size: 10 }, callback: (v) => v + 'K' },
-          grid: { color: 'rgba(255,255,255,0.04)' },
-          border: { display: false },
-          position: 'left'
-        },
-        y1: {
-          ticks: { color: '#555', font: { size: 10 }, callback: (v) => v + 'K' },
-          grid: { display: false },
-          border: { display: false },
-          position: 'right'
-        }
+          data: {
+            labels: d.months,
+            datasets: [{ label: 'المبيعات الشهرية', data: d.months.map(m => monthlySalesMap[m]),
+              borderColor: '#00ff41', backgroundColor: 'rgba(0,255,65,0.1)', borderWidth: 2,
+              fill: true, tension: 0.4, pointBackgroundColor: '#14b8a6', pointBorderColor: '#00ff41',
+              pointRadius: 4, pointHoverRadius: 6 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, ticks: { color: '#a1a1a6' }, grid: { color: 'rgba(42,49,66,0.3)' } },
+              x: { ticks: { color: '#a1a1a6' }, grid: { color: 'rgba(42,49,66,0.3)' } }
+            }
+          }
+        });
+      } else if (monthlyCtx && this.state.charts.monthly) {
+        this.state.charts.monthly.data.datasets[0].data = d.months.map(m => monthlySalesMap[m]);
+        this.state.charts.monthly.update();
       }
-    }
-  });
 
-  const donutEl = document.getElementById('donutChart');
-  const donutChart = new Chart(donutEl, {
-    type: 'doughnut',
-    data: {
-      labels: ['مخزون صحي', 'يحتاج متابعة', 'راكد'],
-      datasets: [{
-        data: [72, 18, 10],
-        backgroundColor: ['#22c55e', '#f59e0b', '#FF004D'],
-        borderColor: '#121212',
-        borderWidth: 3,
-        hoverOffset: 6
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: false },
-        tooltip: {
-          backgroundColor: '#1c1c1c',
-          borderColor: 'rgba(255,255,255,0.08)',
-          borderWidth: 1,
-          titleColor: '#fff',
-          bodyColor: '#A1A1AA',
-          callbacks: { label: (ctx) => ` ${ctx.label}: ${ctx.raw}%` }
-        }
-      },
-      cutout: '72%',
-    }
-  });
-
-  // ─── Status helper ───
-  function setStatus(type, text) {
-    const el = document.getElementById('sheets-status');
-    if (!el) return;
-    el.textContent = text;
-    el.style.color = type === 'connected' ? '#22c55e' : type === 'syncing' ? '#f59e0b' : '#FF004D';
-  }
-
-  // ─── Helpers ───
-  function num(v) { return parseFloat(String(v || 0).replace(/,/g, '')) || 0; }
-  function fmt(n) {
-    if (n >= 1_000_000) return (n / 1_000_000).toFixed(2) + ' <span class="kpi-unit">م</span>';
-    if (n >= 1_000)     return Math.round(n / 1000) + ' <span class="kpi-unit">ألف</span>';
-    return String(Math.round(n));
-  }
-
-  // ─── Apply data from API — updates EVERY element on the page ───
-  function applyData(d) {
-    const F = FIELD_MAP;
-
-    // ══ 1. KPI VALUES ════════════════════════════════════════
-    const revenue  = num(d[F.revenue]      ?? d.revenue      ?? d.totalRevenue  ?? 0);
-    const profit   = num(d[F.profit]       ?? d.profit       ?? d.totalProfit   ?? 0);
-    const carsSold = num(d[F.carsSold]     ?? d.carsSold     ?? d.sold          ?? 0);
-    const invRate  = num(d[F.inventoryRate]?? d.inventoryRate ?? d.turnover     ?? 0);
-
-    if (revenue)  set('kpi-revenue-val', fmt(revenue));
-    if (profit)   set('kpi-profit-val',  Math.round(profit/1000) + ' <span class="kpi-unit">ألف</span>');
-    if (carsSold) set('kpi-sold-val',    carsSold + ' <span class="kpi-unit">سيارة</span>');
-    if (invRate)  set('kpi-inv-val',     invRate.toFixed(1) + ' <span class="kpi-unit">مرة</span>');
-
-    // ══ 2. KPI CHANGES (%) ═══════════════════════════════════
-    const changes = d.changes ?? d.kpiChanges ?? d.growth ?? {};
-    setChange('kpi-rev-change',    num(changes.revenue    ?? changes.الإيرادات  ?? null));
-    setChange('kpi-profit-change', num(changes.profit     ?? changes.الأرباح    ?? null));
-    setChange('kpi-sold-change',   num(changes.sold       ?? changes.المبيعات   ?? null));
-    setChange('kpi-inv-change',    num(changes.inventory  ?? changes.المخزون    ?? null));
-
-    // ══ 3. MONTHLY CHART ═════════════════════════════════════
-    const monthly = d.monthly ?? d.monthlyData ?? [];
-    if (Array.isArray(monthly) && monthly.length > 0) {
-      revenueChart.data.labels           = monthly.map(r => r[F.month]        ?? r.month         ?? r.الشهر);
-      revenueChart.data.datasets[0].data = monthly.map(r => Math.round(num(r[F.monthRevenue]    ?? r.revenue      ?? r.إيرادات) / 1000));
-      revenueChart.data.datasets[1].data = monthly.map(r => Math.round(num(r[F.monthProfit]     ?? r.profit       ?? r.أرباح)   / 1000));
-      revenueChart.update('active');
-    }
-
-    // ══ 4. INVENTORY DONUT ═══════════════════════════════════
-    const inv   = d.inventory ?? d.inventoryHealth ?? {};
-    const hp    = num(inv[F.invHealthy] ?? inv.healthy  ?? inv.صحي      ?? 72);
-    const np    = num(inv[F.invNeeds]   ?? inv.needs    ?? inv.متابعة   ?? 18);
-    const sp    = num(inv[F.invStale]   ?? inv.stale    ?? inv.راكد     ?? 10);
-    const tot   = (hp + np + sp) || 100;
-    const hpPct = Math.round(hp / tot * 100);
-    const npPct = Math.round(np / tot * 100);
-    const spPct = 100 - hpPct - npPct;
-    donutChart.data.datasets[0].data = [hpPct, npPct, spPct];
-    donutChart.update('active');
-    document.getElementById('inv-healthy').textContent = hpPct + '%';
-    document.getElementById('inv-needs').textContent   = npPct + '%';
-    document.getElementById('inv-stale').textContent   = spPct + '%';
-
-    // ══ 5. BRANCHES ══════════════════════════════════════════
-    const branches = d.branches ?? d.branchData ?? [];
-    if (Array.isArray(branches) && branches.length > 0) {
-      const maxRev = Math.max(...branches.map(b => num(b[F.branchRevenue] ?? b.revenue ?? 0))) || 1;
-      document.querySelector('.branch-list').innerHTML = branches.map(b => {
-        const name   = b[F.branchName]    ?? b.name    ?? b.اسم_الفرع   ?? '';
-        const rev    = num(b[F.branchRevenue] ?? b.revenue ?? 0);
-        const growth = num(b[F.branchGrowth]  ?? b.growth  ?? 0);
-        const pct    = Math.round(rev / maxRev * 100);
-        const isUp   = growth >= 0;
-        const revTxt = rev >= 1000 ? Math.round(rev/1000) + ' ألف' : rev;
-        const badge  = `<span class="branch-badge ${isUp?'up':'neutral'}">${isUp?'▲':'▼'} ${Math.abs(growth).toFixed(1)}%</span>`;
-        return `<div class="branch-item">
-          <div class="branch-header">
-            <div><span class="branch-name">${name}</span></div>
-            <div style="display:flex;align-items:center;gap:8px"><span class="branch-value">${revTxt}</span>${badge}</div>
-          </div>
-          <div class="branch-bar-wrap"><div class="branch-bar-fill" style="width:${pct}%"></div></div>
-        </div>`;
-      }).join('');
-    }
-
-    // ══ 6. TOP BRANDS TABLE ══════════════════════════════════
-    const brands = d.brands ?? d.topBrands ?? d.brandData ?? [];
-    if (Array.isArray(brands) && brands.length > 0) {
-      const ICONS = {
-        'تويوتا':'ت', 'مرسيدس':'م', 'كيا':'ك', 'نيسان':'ن',
-        'شيفروليه':'ش', 'بي إم دبليو':'B', 'هونداي':'ه', 'هيونداي إلنترا':'ه',
-        'لكزس':'ل', 'هوندا':'ح',
-      };
-      const maxRev2 = Math.max(...brands.map(b => num(b.revenue ?? b.إيرادات ?? 0))) || 1;
-      document.getElementById('brands-table').innerHTML = brands.map(b => {
-        const name   = b.name    ?? b.الماركة  ?? b.brand ?? '';
-        const rev    = num(b.revenue  ?? b.إيرادات ?? 0);
-        const prof   = num(b.profit   ?? b.ربح     ?? 0);
-        const pct    = Math.round(rev / maxRev2 * 100);
-        const icon   = ICONS[name] ?? name.charAt(0);
-        const revTxt = rev  >= 1000 ? Math.round(rev/1000)  + ' ألف' : rev;
-        const prTxt  = prof >= 1000 ? Math.round(prof/1000) + ' ألف' : prof;
-        return `<div class="brand-row">
-          <div class="brand-identity"><div class="brand-icon">${icon}</div><span class="brand-name">${name}</span></div>
-          <div><span class="brand-revenue">${revTxt}</span>
-            <div class="progress-bar-wrap"><div class="progress-bar-fill" style="width:${pct}%"></div></div>
-          </div>
-          <span class="brand-profit">${prTxt}</span>
-        </div>`;
-      }).join('');
-    }
-
-    // ══ 7. DAILY SUMMARY ═════════════════════════════════════
-    const today = d.today ?? d.daily ?? d.dailySummary ?? {};
-    const ds = (id, val) => { if (val != null && val != 0) document.getElementById(id).textContent = val; };
-    ds('daily-sales',     today.sales     ?? today.مبيعات       ?? null);
-    ds('daily-inventory', today.inventory ?? today.مخزون        ?? null);
-    ds('daily-finance',   today.finance   ?? today.تمويل        ?? null);
-    ds('daily-vip',       today.vip       ?? today.vipClients   ?? null);
-
-    // ══ 8. SYNC TIME ═════════════════════════════════════════
-    const now = new Date().toLocaleTimeString('ar-SA', { hour:'2-digit', minute:'2-digit' });
-    const lastEl = document.getElementById('last-sync-text');
-    if (lastEl) lastEl.textContent = `آخر تحديث: اليوم ${now}`;
-  }
-
-  // ── Helpers ──
-  function set(id, html) { const el = document.getElementById(id); if (el) el.innerHTML = html; }
-
-  function setChange(id, val) {
-    if (val == null || isNaN(val)) return;
-    const el = document.getElementById(id);
-    if (!el) return;
-    const up  = val >= 0;
-    const abs = Math.abs(val).toFixed(1);
-    el.className = 'kpi-change ' + (up ? 'up' : 'down');
-    el.innerHTML = `${up?'▲':'▼'} ${abs}% <span class="kpi-change-label">الشهر السابق</span>`;
-  }
-
-  // ─── Main fetch ───
-  let syncTimer = null;
-
-  async function syncSheets() {
-    setStatus('syncing', '⟳ جاري التحديث...');
-    const btn  = document.getElementById('sync-btn');
-    const main = document.querySelector('main');
-    if (btn)  btn.disabled  = true;
-    if (main) main.classList.add('loading');
-
-    try {
-      const ctrl = new AbortController();
-      const timeout = setTimeout(() => ctrl.abort(), 10000);
-
-      const params = new URLSearchParams({
-        period:  activeFilters.period,
-        branch:  activeFilters.branch,
-        brand:   activeFilters.brand,
-        payment: activeFilters.payment,
+      // Branch Sales
+      const branchSalesMap = {};
+      d.branches.forEach(b => branchSalesMap[b.name] = 0);
+      filtered.forEach(s => {
+        const branch = d.branches.find(b => b.id === s.branchId);
+        if (branch) branchSalesMap[branch.name] += s.totalPrice;
       });
-      const res = await fetch(`${API_URL}?${params}`, {
-        signal: ctrl.signal,
-        redirect: 'follow',
-        mode: 'cors',
-      });
-      clearTimeout(timeout);
-
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-
-      const data = await res.json();
-
-      // Apps Script sometimes wraps in { status, data } — unwrap if needed
-      const payload = (data && data.data) ? data.data : data;
-
-      applyData(payload);
-      setStatus('connected', '● متصل بـ Google Sheets ✓');
-
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        setStatus('error', '● انتهت مهلة الاتصال — تحقق من الـ API');
-      } else {
-        setStatus('error', '● تعذّر الاتصال — ' + (err.message || 'خطأ'));
+      const branchCtx = document.getElementById('branchSalesChart');
+      if (branchCtx && !this.state.charts.branch) {
+        this.state.charts.branch = new Chart(branchCtx, {
+          type: 'bar',
+          data: {
+            labels: d.branches.map(b => b.name),
+            datasets: [{ label: 'المبيعات', data: d.branches.map(b => branchSalesMap[b.name]),
+              backgroundColor: ['#00ff41','#14b8a6','#ff9500','#ff3366'],
+              borderColor: ['#00ff41','#14b8a6','#ff9500','#ff3366'], borderWidth: 2, borderRadius: 8 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#a1a1a6' }, grid: { color: 'rgba(42,49,66,0.3)' } },
+              y: { ticks: { color: '#a1a1a6' }, grid: { display: false } }
+            }
+          }
+        });
+      } else if (branchCtx && this.state.charts.branch) {
+        this.state.charts.branch.data.datasets[0].data = d.branches.map(b => branchSalesMap[b.name]);
+        this.state.charts.branch.update();
       }
-      console.error('[VIP Dashboard] sync failed:', err);
-    }
 
-    if (btn)  btn.disabled  = false;
-    if (main) main.classList.remove('loading');
-    if (syncTimer) clearTimeout(syncTimer);
-    syncTimer = setTimeout(syncSheets, 5 * 60 * 1000); // auto-refresh every 5 min
+      // Brand Donut
+      const brandSalesMap = {};
+      d.cars.forEach(c => brandSalesMap[c.brand] = 0);
+      filtered.forEach(s => {
+        const car = d.cars.find(c => c.id === s.carId);
+        if (car) brandSalesMap[car.brand] += s.totalPrice;
+      });
+      const brandCtx = document.getElementById('brandSalesChart');
+      if (brandCtx && !this.state.charts.brand) {
+        this.state.charts.brand = new Chart(brandCtx, {
+          type: 'doughnut',
+          data: {
+            labels: Object.keys(brandSalesMap),
+            datasets: [{ data: Object.values(brandSalesMap),
+              backgroundColor: ['#00ff41','#14b8a6','#ff9500','#ff3366','#00ffff'],
+              borderColor: '#1a1f2e', borderWidth: 2 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'right', labels: { color: '#e4e4e7', font: { family: 'Cairo' } } } }
+          }
+        });
+      } else if (brandCtx && this.state.charts.brand) {
+        this.state.charts.brand.data.datasets[0].data = Object.values(brandSalesMap);
+        this.state.charts.brand.update();
+      }
+
+      // Color Bar
+      const colorSalesMap = {};
+      d.cars.forEach(c => colorSalesMap[c.color] = 0);
+      filtered.forEach(s => {
+        const car = d.cars.find(c => c.id === s.carId);
+        if (car) colorSalesMap[car.color] += s.totalPrice;
+      });
+      const colorCtx = document.getElementById('colorSalesChart');
+      if (colorCtx && !this.state.charts.color) {
+        this.state.charts.color = new Chart(colorCtx, {
+          type: 'bar',
+          data: {
+            labels: Object.keys(colorSalesMap),
+            datasets: [{ label: 'المبيعات', data: Object.values(colorSalesMap),
+              backgroundColor: '#14b8a6', borderColor: '#00ff41', borderWidth: 2, borderRadius: 8 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#a1a1a6' }, grid: { color: 'rgba(42,49,66,0.3)' } },
+              y: { ticks: { color: '#a1a1a6' }, grid: { display: false } }
+            }
+          }
+        });
+      } else if (colorCtx && this.state.charts.color) {
+        this.state.charts.color.data.datasets[0].data = Object.values(colorSalesMap);
+        this.state.charts.color.update();
+      }
+
+      // Cumulative
+      const sortedSales = [...filtered].sort((a, b) => new Date(a.saleDate) - new Date(b.saleDate));
+      let cum = 0;
+      const cumData = sortedSales.map(s => { cum += s.totalPrice; return cum; });
+      const cumLabels = sortedSales.map(s => s.saleDate.substring(5));
+      const cumulCtx = document.getElementById('cumulativeSalesChart');
+      if (cumulCtx && !this.state.charts.cumulative) {
+        this.state.charts.cumulative = new Chart(cumulCtx, {
+          type: 'line',
+          data: {
+            labels: cumLabels,
+            datasets: [{ label: 'المبيعات التراكمية', data: cumData,
+              borderColor: '#ff9500', backgroundColor: 'rgba(255,149,0,0.1)', borderWidth: 2,
+              fill: true, tension: 0.4, pointBackgroundColor: '#ff3366', pointBorderColor: '#ff9500', pointRadius: 3 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+              y: { beginAtZero: true, ticks: { color: '#a1a1a6' }, grid: { color: 'rgba(42,49,66,0.3)' } },
+              x: { ticks: { color: '#a1a1a6' }, grid: { color: 'rgba(42,49,66,0.3)' } }
+            }
+          }
+        });
+      } else if (cumulCtx && this.state.charts.cumulative) {
+        this.state.charts.cumulative.data.datasets[0].data = cumData;
+        this.state.charts.cumulative.data.labels = cumLabels;
+        this.state.charts.cumulative.update();
+      }
+
+      // Summary
+      const topBranch = Object.entries(branchSalesMap).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0];
+      const topBrand = Object.entries(brandSalesMap).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0];
+      const summaryCtx = document.getElementById('summaryChart');
+      if (summaryCtx && !this.state.charts.summary) {
+        this.state.charts.summary = new Chart(summaryCtx, {
+          type: 'bar',
+          data: {
+            labels: ['الفرع الأول', 'العلامة الأولى', 'إجمالي المبيعات'],
+            datasets: [{ label: 'المبيعات',
+              data: [topBranch[1], topBrand[1], filtered.reduce((s, a) => s + a.totalPrice, 0)],
+              backgroundColor: ['#00ff41','#14b8a6','#ff9500'], borderRadius: 8 }]
+          },
+          options: { responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+            plugins: { legend: { display: false } },
+            scales: {
+              x: { ticks: { color: '#a1a1a6' }, grid: { color: 'rgba(42,49,66,0.3)' } },
+              y: { ticks: { color: '#a1a1a6' }, grid: { display: false } }
+            }
+          }
+        });
+      }
+    }, 100);
   }
 
-  // ─── Filter state ───
-  const activeFilters = { period: 'month', branch: 'all', brand: 'all', payment: 'all' };
-  const filterKeys    = { 'fd-period': 'period', 'fd-branch': 'branch', 'fd-brand': 'brand', 'fd-payment': 'payment' };
+  renderVals() {
+    const d = this.state.data;
+    const isLoading = this.state.isLoading;
+    const isReady = !isLoading && !!d;
 
-  function toggleDropdown(id) {
-    const el = document.getElementById(id);
-    const wasOpen = el.classList.contains('open');
-    // close all
-    document.querySelectorAll('.filter-dropdown.open').forEach(d => d.classList.remove('open'));
-    if (!wasOpen) el.classList.add('open');
+    if (!isReady) return { isLoading, isReady: false };
+
+    const filtered = this.getFilteredSales();
+    const totalSales = filtered.reduce((sum, s) => sum + s.totalPrice, 0);
+    const totalUnits = filtered.length;
+    const avgPrice = totalUnits > 0 ? Math.round(totalSales / totalUnits) : 0;
+    const uniqueBranches = new Set(filtered.map(s => s.branchId)).size;
+
+    const fmt = (n) => new Intl.NumberFormat('ar-SA', { style: 'currency', currency: 'SAR', minimumFractionDigits: 0 }).format(n);
+
+    const branchSalesMap = {};
+    d.branches.forEach(b => branchSalesMap[b.name] = 0);
+    filtered.forEach(s => { const b = d.branches.find(b => b.id === s.branchId); if (b) branchSalesMap[b.name] += s.totalPrice; });
+    const topBranch = Object.entries(branchSalesMap).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0];
+
+    const brandSalesMap = {};
+    d.cars.forEach(c => brandSalesMap[c.brand] = 0);
+    filtered.forEach(s => { const c = d.cars.find(c => c.id === s.carId); if (c) brandSalesMap[c.brand] += s.totalPrice; });
+    const topBrand = Object.entries(brandSalesMap).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0];
+
+    const colorSalesMap = {};
+    d.cars.forEach(c => colorSalesMap[c.color] = 0);
+    filtered.forEach(s => { const c = d.cars.find(c => c.id === s.carId); if (c) colorSalesMap[c.color] += s.totalPrice; });
+    const topColor = Object.entries(colorSalesMap).sort((a, b) => b[1] - a[1])[0] || ['N/A', 0];
+
+    const tableData = filtered.slice(0, 10).map(sale => ({
+      totalPrice: fmt(sale.totalPrice),
+      brand: d.cars.find(c => c.id === sale.carId)?.brand || 'N/A',
+      customerName: sale.customerName,
+      saleDate: new Date(sale.saleDate).toLocaleDateString('ar-SA'),
+    }));
+
+    const years = [...new Set(d.sales.map(s => s.year))].sort();
+
+    return {
+      isLoading,
+      isReady,
+      totalSalesFormatted: fmt(totalSales),
+      totalSalesChange: `${totalUnits} معاملة`,
+      unitsSoldFormatted: totalUnits.toString(),
+      unitsSoldChange: `متوسط ${fmt(avgPrice)} لكل معاملة`,
+      averagePriceFormatted: fmt(avgPrice),
+      averagePriceChange: 'لكل وحدة',
+      activeBranchesCount: uniqueBranches,
+      tableData,
+      topBranchName: topBranch[0],
+      topBranchSales: fmt(topBranch[1]),
+      topBrandName: topBrand[0],
+      topBrandSales: fmt(topBrand[1]),
+      topColorName: topColor[0],
+      topColorSales: fmt(topColor[1]),
+      monthOptions: d.months.map(m => `<option value="${m}">${m}</option>`).join(''),
+      brandOptions: [...new Set(d.cars.map(c => c.brand))].map(b => `<option value="${b}">${b}</option>`).join(''),
+      branchOptions: d.branches.map(b => `<option value="${b.name}">${b.name}</option>`).join(''),
+      yearOptions: years.map(y => `<option value="${y}">${y}</option>`).join(''),
+      handleMonthFilter: (e) => { this.setState({ selectedMonth: e.target.value, charts: {} }); },
+      handleBranchFilter: (e) => { this.setState({ selectedBranch: e.target.value, charts: {} }); },
+      handleBrandFilter: (e) => { this.setState({ selectedBrand: e.target.value, charts: {} }); },
+      handleYearFilter: (e) => { this.setState({ selectedYear: e.target.value, charts: {} }); },
+    };
   }
-
-  function selectFilter(dropdownId, value, label, itemEl) {
-    const key = filterKeys[dropdownId];
-    activeFilters[key] = value;
-
-    // update button label
-    const btn = document.querySelector(`#${dropdownId} .filter-label`);
-    if (btn) btn.textContent = label;
-
-    // toggle active styles on button
-    const filterBtn = document.querySelector(`#${dropdownId} .filter-btn`);
-    const isNonDefault = value !== 'all' && value !== 'month';
-    filterBtn.className = 'filter-btn ' + (isNonDefault || value === 'month' ? 'active' : 'inactive');
-
-    // update arrow color
-    const arrow = filterBtn.querySelector('.f-arrow path');
-    if (arrow) arrow.setAttribute('stroke', isNonDefault || value === 'month' ? '#FF004D' : '#555');
-
-    // mark active item
-    itemEl.closest('.dropdown-menu').querySelectorAll('.dd-item').forEach(d => d.classList.remove('active'));
-    itemEl.classList.add('active');
-
-    // close dropdown
-    document.getElementById(dropdownId).classList.remove('open');
-
-    // re-fetch with new filters
-    syncSheets();
-  }
-
-  // close dropdowns when clicking outside
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.filter-dropdown')) {
-      document.querySelectorAll('.filter-dropdown.open').forEach(d => d.classList.remove('open'));
-    }
-  });
-
-  // Boot
-  syncSheets();
+}
 </script>
 </body>
 </html>
